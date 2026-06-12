@@ -1,0 +1,95 @@
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(3px);
+}
+
+.login-dialog {
+  background: #2a1a08;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 28px 32px;
+  width: 320px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.login-dialog h2 {
+  color: #f0dfc0;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.login-dialog input[type="password"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f0dfc0;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.login-dialog input[type="password"]:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.login-dialog input::placeholder {
+  color: rgba(240, 223, 192, 0.35);
+}
+
+.login-error {
+  color: #ff8080;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.login-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  justify-content: flex-end;
+}
+
+.login-cancel {
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: rgba(240, 223, 192, 0.7);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+
+.login-cancel:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.login-submit {
+  padding: 8px 20px;
+  border: none;
+  background: #b8874a;
+  color: white;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.login-submit:hover:not(:disabled) {
+  background: #d4a060;
+}
+
+.login-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

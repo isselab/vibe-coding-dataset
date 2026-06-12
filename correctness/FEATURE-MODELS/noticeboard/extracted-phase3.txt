@@ -1,0 +1,51 @@
+Noticeboard
+	Board list (home screen)                   ← new
+		View all boards
+		Navigate to board (URL hash routing)
+	Board management (admin)                   ← new
+		Create board (set name + theme)
+		Edit board (rename, change theme)
+		Delete board (cascades to cards + images)
+	Themes (per-board)                         ← new; Cork was the only look before
+		Cork
+		Chalkboard
+		Ocean
+		Linen
+		Forest
+		Sunset
+	User roles                                 ← carried over
+		Admin
+			Password login
+			JWT session (sessionStorage)
+			Logout
+		Visitor (read-only, no login)
+	Cards (unified single type, scoped to board) ← carried over; boardId added
+		Optional image (top)
+		Text area (below)
+		Color options
+		Random initial rotation
+	Admin card actions                         ← carried over
+		Add card
+		Edit card text
+		Upload / replace image
+		Drag / reposition
+		Bring to front (z-index on focus)
+		Delete card
+	Visitor interactions                       ← carried over
+		View all cards (live)
+		Emoji reactions
+			6 reaction types (❤️ 😂 😮 😢 👍 🔥)
+			Reaction counts visible to all
+			One reaction per card (localStorage anti-spam)
+	Real-time sync                             ← carried over; now per-board
+		WebSocket connection (per-board broadcasts)
+		Auto-reconnect on drop
+		All clients on same board see live changes
+	Toolbar (admin only)                       ← carried over
+		Add card button
+	Backend                                    ← carried over; boards entity added
+		Express API server
+		JSON file database (boards + cards)
+		Image storage (disk / uploads/)
+		Single admin password (.env)
+		Production build (npm run build && npm start)

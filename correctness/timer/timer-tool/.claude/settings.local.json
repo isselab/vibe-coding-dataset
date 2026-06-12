@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__fm-gui__get-feature-model",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "mcp__fm-gui__summary-gui"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "fm-gui"
+  ]
+}

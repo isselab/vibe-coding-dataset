@@ -1,0 +1,145 @@
+.session-logger {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.session-meta {
+  display: flex;
+  gap: 10px;
+}
+
+.date-input {
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.exercises-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.exercise-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.exercise-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1e1e2a;
+  border: 1px solid #2e2e3e;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.exercise-item--strength {
+  border-left: 3px solid #6c63ff;
+}
+
+.exercise-item--cardio {
+  border-left: 3px solid #f97316;
+}
+
+.ex-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.ex-badge--strength {
+  background: #2a2550;
+  color: #a09eff;
+}
+
+.ex-badge--cardio {
+  background: #3a1e0a;
+  color: #fb923c;
+}
+
+.ex-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.type-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.type-tab {
+  background: #1e1e2a;
+  color: #888;
+  border: 1px solid #2e2e3e;
+  padding: 6px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.type-tab:hover:not(.active) {
+  color: #e8e8f0;
+}
+
+.type-tab.active.strength {
+  background: #2a2550;
+  border-color: #6c63ff;
+  color: #a09eff;
+}
+
+.type-tab.active.cardio {
+  background: #3a1e0a;
+  border-color: #f97316;
+  color: #fb923c;
+}
+
+.ex-detail {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.remove-btn {
+  background: transparent;
+  color: #666;
+  padding: 2px 6px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.remove-btn:hover {
+  background: #2e2e3e;
+  color: #ff6b6b;
+}
+
+.save-btn {
+  background: #22c55e;
+  color: #fff;
+  padding: 12px;
+  font-size: 15px;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #16a34a;
+}

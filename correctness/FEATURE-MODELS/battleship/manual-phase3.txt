@@ -1,0 +1,11 @@
+Battleship
+	Board
+		GameLogic
+	Ship
+		ShipType
+	Settings
+		ShipPlacement
+			DragDrop
+	OnlineRoom
+		RoomManager
+	Animation

@@ -1,0 +1,48 @@
+Battleship (Stage 2)
+	Game Phases
+		Connecting screen
+		Waiting screen
+		Mode selection screen
+			Click-to-place option
+			Drag-and-drop option
+		Placement phase
+		Battle phase
+		Game over screen
+			Win / lose result
+			Play again (page reload)
+	Multiplayer
+		WebSocket connection (single room)
+		Opponent disconnect handling
+	Ship Placement
+		Fleet panel
+			5 ships (Carrier, Battleship, Cruiser, Submarine, Destroyer)
+			Selection indicator
+			Placed indicator
+		Placement methods (chosen at mode selection)
+			Click to place
+			Drag and drop
+		Orientation
+			Toggle button (Horizontal / Vertical)
+			Keyboard shortcut (R)
+		Remove placed ship
+		Reset all ships
+		"All ships placed" confirmation message
+		"Waiting for opponent" banner
+	Grid
+		10×10 cells
+		Row labels (A–J)
+		Column labels (1–10)
+		Hover preview (placement phase)
+			Valid placement highlight
+			Invalid placement highlight
+		Hit / miss markers (battle phase)
+		Sunk enemy ship reveal (battle phase)
+	Ship Visuals
+		SVG naval silhouettes (unique per ship type)
+		Absolute-positioned overlays on grid
+		Horizontal / vertical orientation rendering
+	Battle
+		Turn-based attacks (click enemy grid)
+		Hit / miss markers
+		Sunk ship reveal
+		Turn indicator

@@ -1,0 +1,30 @@
+Graphing Calculator
+	Graph Rendering
+		Canvas-based 2D renderer
+		Grid with intelligent step sizing (niceStep)
+		X and Y axis rendering with labels
+		High-DPI rendering support
+		Discontinuity handling (pen-up/pen-down)
+	Math Engine
+		mathjs expression evaluation (no eval())
+		Operators: +, -, *, /, ^
+		Functions: sin, cos, tan, sqrt, log, abs
+		Constants: pi, e
+	Function Management
+		Up to 6 functions (expandable)
+		Color-coded function slots (8 colors)
+		Visibility toggle per function
+		Add function
+		Remove function
+		Real-time expression validation
+		Error display for invalid expressions
+	View Range
+		X min / X max inputs
+		Y min / Y max inputs
+		Reset view button (default: x −10…10, y −6…6)
+	Syntax Reference
+		Help section listing supported operators and functions
+	UI / Styling
+		Sidebar + canvas two-column layout
+		Dark theme
+		Monospace font for inputs and labels

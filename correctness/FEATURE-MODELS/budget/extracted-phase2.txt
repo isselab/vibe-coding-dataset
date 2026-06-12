@@ -1,0 +1,85 @@
+Budget Tracker
+	Navigation
+		Dashboard tab
+		Transactions tab
+		Recurring tab          [new]
+		Goals tab              [new]
+		Tools tab              [new]
+		Categories tab
+	Dashboard                  [updated]
+		Monthly Summary Cards
+			Income             [new — shown when income exists]
+			Expenses           [renamed from "Spent This Month"]
+			Net (Income − Expenses) [new — shown when income exists]
+			Total Budget       (shown when limits are set)
+			Transaction Count
+		Budget Warnings Panel
+			Per-category warning (name, spent, limit, overage)
+		Category Breakdown
+			Progress Bar per category (green → amber at 80% → red)
+		Saving Goals Summary   [new]
+			Progress bar per active (incomplete) goal
+	Transactions               [updated]
+		Add Transaction Form
+			Transaction type toggle (Expense / Income) [new]
+			Description field
+			Amount field
+			Category selector
+			Date picker
+		Transaction List
+			Type filter (All / Expense / Income) [new]
+			Filter by category
+			Sort by date (asc / desc)
+			Type badge per row   [new]
+			Income amount in green [new]
+			Delete transaction
+	Recurring Transactions     [new]
+		Add Recurring Item
+			Type (Income / Expense)
+			Description
+			Amount
+			Category
+			Frequency (daily, weekly, biweekly, monthly, quarterly, yearly)
+			Start date
+			Optional end date
+		Auto-materialization on app load
+			Deterministic IDs (no duplicates on reload)
+		Recurring item list
+		Delete recurring item
+	Saving Goals               [new]
+		Add Goal
+			Name
+			Target amount
+			Optional deadline
+			Optional notes
+		Goal card display
+			Saved / target amounts
+			Progress bar
+			Deadline display
+			Completion badge (when target reached)
+		Contribute to goal (inline add-funds input)
+		Delete goal
+	Tools                      [new]
+		Currency Converter
+			22 currency options (USD, EUR, GBP, SEK, NOK, DKK, …)
+			Live exchange rates (open.er-api.com, no key required)
+			Swap currencies button
+			Manual refresh
+		Bank Import
+			CSV / semicolon-delimited file upload
+			Auto column detection (date, description, amount/debit/credit)
+			Sign convention selector
+				Negative value = expense
+				Always expense
+				Separate debit/credit columns
+			Preview (first 5 rows before committing)
+			Duplicate-safe import (deterministic IDs)
+	Categories
+		Predefined categories (Housing, Food, Transport, Entertainment,
+│   │   Health, Shopping, Utilities, Savings, Other)  [Savings added]
+		Add custom category
+		Set monthly spend limit per category
+		Remove monthly spend limit
+	Data Persistence
+		localStorage (transactions, categories, limits, goals,
+recurringItems)

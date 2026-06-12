@@ -1,0 +1,501 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f4f6f9;
+  color: #111827;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 20px 64px;
+}
+
+/* ── Header ── */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 12px;
+}
+
+.app-header h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn-add:hover { background: #1d4ed8; }
+.btn-add:active { transform: scale(0.97); }
+
+.btn-add.sw-add { background: #059669; }
+.btn-add.sw-add:hover { background: #047857; }
+
+/* ── Card list ── */
+
+.timer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Timer card ── */
+
+.timer-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 14px rgba(0,0,0,0.05);
+  padding: 20px 22px;
+  transition: box-shadow 0.25s;
+}
+
+.timer-card.alarming {
+  animation: card-alarm 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes card-alarm {
+  from { box-shadow: 0 0 0 2px #fca5a5, 0 4px 14px rgba(239,68,68,0.12); }
+  to   { box-shadow: 0 0 0 3px #ef4444, 0 6px 24px rgba(239,68,68,0.25); }
+}
+
+/* Card header */
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.label-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  background: transparent;
+  letter-spacing: -0.01em;
+}
+
+.label-input::placeholder {
+  color: #d1d5db;
+  font-weight: 400;
+}
+
+.btn-remove {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #d1d5db;
+  font-size: 0.85rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.btn-remove:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* Card body */
+
+.card-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* ── Ring ── */
+
+.ring-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 116px;
+  height: 116px;
+}
+
+.ring-track {
+  fill: none;
+  stroke: #f3f4f6;
+  stroke-width: 7;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s linear, stroke 0.35s;
+}
+
+.alarming .ring-progress {
+  stroke: #ef4444;
+}
+
+.ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.time-text {
+  font-size: 1.15rem;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: #111827;
+}
+
+/* ── Card right ── */
+
+.card-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* Alarm badge */
+
+.alarm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ef4444;
+  animation: badge-pulse 0.6s ease-in-out infinite alternate;
+}
+
+.alarm-badge::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+@keyframes badge-pulse {
+  from { opacity: 0.65; }
+  to   { opacity: 1; }
+}
+
+/* ── Time inputs ── */
+
+.inputs {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.inputs label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.inputs label span {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.inputs input {
+  width: 52px;
+  padding: 7px 4px;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  color: #111827;
+  font-size: 1.05rem;
+  font-weight: 400;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.inputs input::-webkit-outer-spin-button,
+.inputs input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.inputs input:focus {
+  border-color: #2563eb;
+  background: #fff;
+}
+
+.colon {
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: #d1d5db;
+  padding-bottom: 8px;
+  user-select: none;
+}
+
+/* ── Controls ── */
+
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.855rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn:active { transform: scale(0.96); }
+
+.btn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn.primary:hover { background: #1d4ed8; }
+
+.btn.primary.danger {
+  background: #ef4444;
+}
+
+.btn.primary.danger:hover { background: #dc2626; }
+
+.btn.secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn.secondary:hover { background: #e5e7eb; }
+
+.btn.ghost {
+  background: transparent;
+  color: #9ca3af;
+  border: 1.5px solid #e5e7eb;
+}
+
+.btn.ghost:hover {
+  color: #374151;
+  border-color: #9ca3af;
+}
+
+/* ── Stopwatch overrides ── */
+
+.sw-ring {
+  stroke: #059669;
+  transition: stroke 0.35s;
+}
+
+.btn.primary.sw-btn { background: #059669; }
+.btn.primary.sw-btn:hover { background: #047857; }
+
+.btn.ghost.sw-lap { color: #059669; border-color: #a7f3d0; }
+.btn.ghost.sw-lap:hover { background: #f0fdf4; border-color: #059669; }
+
+.stopwatch-card .card-header .label-input::placeholder {
+  color: #d1d5db;
+}
+
+/* ── Listening banner ── */
+
+.listening-banner {
+  margin-bottom: 14px;
+  padding: 10px 16px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #1d4ed8;
+  text-align: center;
+}
+
+.listening-banner kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  background: #fff;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+
+/* ── Key binding badge ── */
+
+.key-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.key-badge.empty {
+  background: none;
+  border: 1px dashed #e5e7eb;
+  color: #d1d5db;
+  font-size: 0.75rem;
+  width: 26px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.key-badge.empty:hover {
+  color: #6b7280;
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.key-badge.bound {
+  padding: 3px 6px 3px 7px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  transition: background 0.15s;
+  gap: 3px;
+}
+
+.key-badge.bound:hover { background: #dbeafe; }
+
+.key-icon {
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+
+.key-clear {
+  background: none;
+  border: none;
+  color: #93c5fd;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0 0 0 1px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.key-clear:hover { color: #2563eb; }
+
+.key-badge.listening {
+  padding: 3px 9px;
+  background: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fde68a;
+  animation: badge-blink 0.7s ease-in-out infinite alternate;
+  cursor: default;
+}
+
+@keyframes badge-blink {
+  from { opacity: 0.75; }
+  to   { opacity: 1; }
+}
+
+/* ── Lap list ── */
+
+.lap-list {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #f3f4f6;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.lap-header {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr;
+  gap: 8px;
+  padding: 0 4px 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.lap-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr;
+  gap: 8px;
+  padding: 5px 4px;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  color: #6b7280;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.lap-row:hover { background: #f9fafb; }
+
+.lap-row.lap-latest {
+  color: #111827;
+  font-weight: 500;
+}
+
+.lap-num { color: #9ca3af; }
+.lap-latest .lap-num { color: #059669; font-weight: 700; }
+
+.lap-split { color: inherit; }
+.lap-total { color: #9ca3af; }

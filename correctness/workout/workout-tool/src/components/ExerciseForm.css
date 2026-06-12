@@ -1,0 +1,35 @@
+.exercise-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #16161f;
+  border: 1px solid #2e2e3e;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.exercise-form-row {
+  display: flex;
+  gap: 8px;
+}
+
+.exercise-name-input {
+  flex: 1;
+}
+
+.exercise-nums {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 8px;
+}
+
+.add-exercise-btn {
+  background: #6c63ff;
+  color: #fff;
+  white-space: nowrap;
+  padding: 8px 14px;
+}
+
+.add-exercise-btn:hover:not(:disabled) {
+  background: #7d75ff;
+}

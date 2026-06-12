@@ -1,0 +1,40 @@
+Noticeboard
+	Board
+		Cork board background                  ← carried over
+		Persistence (server-side JSON file)    ← replaces localStorage
+	User roles                                 ← new
+		Admin
+			Password login
+			JWT session (sessionStorage)
+			Logout
+		Visitor (read-only, no login)
+	Cards (unified single type)                ← replaces two separate types
+		Optional image (top)
+		Text area (below)
+		Color options                          ← carried over
+		Random initial rotation               ← carried over
+	Admin card actions
+		Add card                               ← carried over
+		Edit card text                         ← carried over
+		Upload / replace image                 ← carried over
+		Drag / reposition                      ← carried over
+		Bring to front (z-index on focus)      ← carried over
+		Delete card                            ← carried over
+	Visitor interactions                       ← new
+		View all cards (live)
+		Emoji reactions
+			6 reaction types (❤️ 😂 😮 😢 👍 🔥)
+			Reaction counts visible to all
+			One reaction per card (localStorage anti-spam)
+	Real-time sync                             ← new
+		WebSocket connection
+		Auto-reconnect on drop
+		All clients see live changes
+	Toolbar (admin only)                       ← carried over, now gated
+		Add card button
+	Backend                                    ← new
+		Express API server
+		JSON file database
+		Image storage (disk / uploads/)
+		Single admin password (.env)
+		Production build (npm run build && npm start)

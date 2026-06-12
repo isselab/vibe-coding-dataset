@@ -1,0 +1,443 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  background-color: #f2f2f7;
+  color: #1d1d1f;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.app-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #1d1d1f;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ── Add buttons ────────────────────────────────────────────── */
+
+.add-btn {
+  background: #1d1d1f;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.add-btn:hover {
+  background: #3a3a3c;
+}
+
+.add-btn-green {
+  background: #10b981;
+}
+
+.add-btn-green:hover {
+  background: #059669;
+}
+
+/* ── Empty state ────────────────────────────────────────────── */
+
+.empty-state {
+  text-align: center;
+  color: #8e8e93;
+  padding: 5rem 0;
+  font-size: 1rem;
+}
+
+/* ── Card grid ──────────────────────────────────────────────── */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1rem;
+}
+
+/* ── Timer card ─────────────────────────────────────────────── */
+
+.timer-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 1.5rem 1.5rem 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 6px 20px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.timer-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 10px 28px rgba(0, 0, 0, 0.08);
+}
+
+.timer-card.finished {
+  animation: card-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes card-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px #f59e0b, 0 6px 20px rgba(245, 158, 11, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 3px #f59e0b, 0 10px 32px rgba(245, 158, 11, 0.32);
+  }
+}
+
+/* ── Remove button ──────────────────────────────────────────── */
+
+.remove-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #c7c7cc;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.remove-btn:hover {
+  background: #f2f2f7;
+  color: #1d1d1f;
+}
+
+/* ── Card label ─────────────────────────────────────────────── */
+
+.timer-number {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #aeaeb2;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Time display ───────────────────────────────────────────── */
+
+.time-display {
+  font-size: 3.25rem;
+  font-weight: 200;
+  letter-spacing: 0.02em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: #1d1d1f;
+  margin: 0.25rem 0 1rem;
+}
+
+.timer-card.finished .time-display {
+  color: #f59e0b;
+}
+
+.stopwatch-card .time-display {
+  font-size: 2.75rem;
+}
+
+/* ── Alarm badge ────────────────────────────────────────────── */
+
+.alarm-badge {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f59e0b;
+  margin-bottom: 0.75rem;
+  animation: badge-fade 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes badge-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.4;
+  }
+}
+
+/* ── Duration inputs ────────────────────────────────────────── */
+
+.duration-inputs {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.2rem;
+  margin-bottom: 1rem;
+}
+
+.duration-inputs label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.duration-inputs label span {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #aeaeb2;
+}
+
+.duration-inputs input {
+  width: 58px;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 400;
+  padding: 0.45rem 0.25rem;
+  border: 1.5px solid #e5e5ea;
+  border-radius: 9px;
+  outline: none;
+  background: #fafafa;
+  color: #1d1d1f;
+  transition: border-color 0.15s, background 0.15s;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.duration-inputs input:focus {
+  border-color: #3b82f6;
+  background: #ffffff;
+}
+
+.duration-inputs input::-webkit-inner-spin-button,
+.duration-inputs input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.duration-sep {
+  font-size: 1.4rem;
+  font-weight: 200;
+  color: #c7c7cc;
+  padding-bottom: 0.25rem;
+  user-select: none;
+}
+
+/* ── Action buttons ─────────────────────────────────────────── */
+
+.timer-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn {
+  padding: 0.5rem 1.3rem;
+  border-radius: 20px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn.primary {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.btn.primary:hover {
+  background: #2563eb;
+}
+
+.btn.start {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.btn.start:hover {
+  background: #059669;
+}
+
+.btn.secondary {
+  background: #f2f2f7;
+  color: #1d1d1f;
+}
+
+.btn.secondary:hover {
+  background: #e5e5ea;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: #8e8e93;
+  border: 1.5px solid #e5e5ea;
+}
+
+.btn.ghost:hover {
+  background: #f2f2f7;
+  color: #1d1d1f;
+}
+
+/* ── Laps list ──────────────────────────────────────────────── */
+
+.laps-list {
+  list-style: none;
+  margin-top: 1rem;
+  max-height: 156px;
+  overflow-y: auto;
+  border-top: 1px solid #f2f2f7;
+  padding-top: 0.75rem;
+  scrollbar-width: thin;
+  scrollbar-color: #e5e5ea transparent;
+}
+
+.lap-item {
+  display: grid;
+  grid-template-columns: 2rem 1fr 1fr;
+  align-items: center;
+  padding: 0.22rem 0;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.lap-number {
+  color: #aeaeb2;
+  font-weight: 600;
+}
+
+.lap-split {
+  color: #1d1d1f;
+  text-align: center;
+}
+
+.lap-total {
+  color: #8e8e93;
+  text-align: right;
+  font-size: 0.75rem;
+}
+
+/* ── Key binding ────────────────────────────────────────────── */
+
+.key-binding {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.875rem;
+}
+
+.key-bind-btn {
+  background: none;
+  border: 1.5px dashed #d1d1d6;
+  border-radius: 6px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.7rem;
+  color: #c7c7cc;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.key-bind-btn:hover {
+  border-color: #8e8e93;
+  color: #8e8e93;
+}
+
+.key-bind-btn.listening {
+  border-style: solid;
+  border-color: #3b82f6;
+  color: #3b82f6;
+  animation: key-listen 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes key-listen {
+  from { opacity: 1; }
+  to   { opacity: 0.45; }
+}
+
+.key-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #f2f2f7;
+  border: 1.5px solid #e5e5ea;
+  border-radius: 6px;
+  padding: 0.2rem 0.4rem 0.2rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #3a3a3c;
+  cursor: pointer;
+  user-select: none;
+}
+
+.key-chip:hover {
+  background: #e5e5ea;
+}
+
+.key-chip-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aeaeb2;
+  font-size: 0.85rem;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.key-chip-clear:hover {
+  color: #1d1d1f;
+}
+
+/* ── Progress bar ───────────────────────────────────────────── */
+
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #f2f2f7;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #3b82f6;
+  transition: width 0.95s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+.timer-card.finished .progress-fill {
+  background: #f59e0b;
+}

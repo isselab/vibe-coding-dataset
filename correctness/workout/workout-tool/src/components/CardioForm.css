@@ -1,0 +1,53 @@
+.cardio-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #16161f;
+  border: 1px solid #2e2e3e;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.cardio-form-row {
+  display: flex;
+  gap: 8px;
+}
+
+.cardio-name-input {
+  flex: 1;
+}
+
+.cardio-nums {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 8px;
+}
+
+.intensity-select {
+  background: #1e1e2a;
+  border: 1px solid #2e2e3e;
+  border-radius: 8px;
+  color: #e8e8f0;
+  font-size: 14px;
+  padding: 8px 10px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  appearance: none;
+  text-align: center;
+}
+
+.intensity-select:focus {
+  border-color: #f97316;
+}
+
+.add-cardio-btn {
+  background: #f97316;
+  color: #fff;
+  white-space: nowrap;
+  padding: 8px 14px;
+}
+
+.add-cardio-btn:hover:not(:disabled) {
+  background: #fb923c;
+}

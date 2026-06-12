@@ -1,0 +1,46 @@
+App
+	App Header
+		Page title
+		Header Actions
+			Add Timer button
+			Add Stopwatch button
+	Mixed Item List (timers and stopwatches, any order)
+		Timer Card  [all Stage 2 features, plus:]
+			Card Header
+				Label input
+				Primary key bind slot (Start / Pause)
+				Secondary key bind slot (Reset)
+				Remove button
+		Stopwatch Card  [new]
+			Card Header
+				Label input
+				Primary key bind slot (Start / Pause / Resume)
+				Secondary key bind slot (Lap while running / Reset while stopped)
+				Remove button
+			Stopwatch Display
+				SVG ring (progress within current 60-second window)
+				Elapsed time readout (MM:SS.cs or HH:MM:SS)
+			Stopwatch Controls
+				Start button
+				Pause button
+				Resume button
+				Lap button (running state only)
+				Reset button
+			Lap List
+				Lap entries (lap number + split time, scrollable)
+	Global Key Binding System
+		Bindings registry  { key → { id, action } }
+		Key listening state  { id, action } | null
+		Global keydown handler (dispatches to card via ref)
+		Escape to cancel binding mode
+		Conflict resolution (replaces existing slot or key)
+		Input field exclusion (bindings suppressed inside text inputs)
+	KeyBind Component (shared by both card types)
+		Empty state (bind button + action icon)
+		Listening state ("Press a key…" display)
+		Bound state
+			Key badge with action icon
+			Tooltip (action name + bound key)
+			Click to rebind
+			Clear button (×)
+	Shared Audio Context (unchanged from Stage 2)

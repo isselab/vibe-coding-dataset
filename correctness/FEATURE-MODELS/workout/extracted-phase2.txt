@@ -1,0 +1,40 @@
+Workout Log
+	Session Form
+		Date picker (defaults to today)
+		Title (optional free text)
+		Strength section
+			Strength row
+				Name (text input)
+				Sets (number)
+				Reps (number)
+				Weight (kg)
+				Remove button (disabled when only 1 row)
+			Add Strength button
+		Cardio section
+			Cardio row
+				Name (text input)
+				Duration (minutes)
+				Distance (km)
+				Intensity (Low / Moderate / High dropdown)
+				Remove button
+			Add Cardio button
+		Save button (disabled if no exercise of either type has a name)
+	Session History
+		Scrollable session list (sorted newest-first by date)
+		Session card
+			Collapsed state
+				Date
+				Title (if set)
+				Exercise count summary
+				Expand / collapse chevron
+			Expanded state
+				Strength table
+					Name
+					Sets
+					Reps
+					Weight (kg)
+				Cardio table
+					Name
+					Duration (min)
+					Distance (km)
+					Intensity

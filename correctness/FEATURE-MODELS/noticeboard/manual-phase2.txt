@@ -1,0 +1,7 @@
+Noticeboard
+	Board
+	Notes
+		Imageupload
+		Reaction
+	Online
+		Administration

@@ -1,0 +1,14 @@
+Battleship
+	GameBoard
+	Fleet
+		ShipDesign
+	ShipPlacement
+		DragAndDropPlacement
+	ShipRotation
+	RoomManagement
+	NetworkGame
+	GamePlay
+		FiringPhase
+		Animations
+		TurnManagement
+		WinCondition

@@ -1,0 +1,30 @@
+App
+	App Header
+		Page title ("Timers")
+		Add Timer button
+	Timer List (unlimited card instances)
+		Timer Card
+			Card Header
+				Label input (custom name)
+				Remove button (✕)
+			Time Input  [idle state only]
+				Hours field
+				Minutes field
+				Seconds field
+			Countdown Display
+				SVG circular progress ring
+					Track ring
+					Progress arc
+				Digital time readout (HH:MM:SS)
+				"Time's up!" label
+			Timer Controls
+				Start button
+				Pause button
+				Resume button
+				Reset button
+				Stop Alarm button
+			Alarm System
+				Web Audio API beep sequence
+				Repeating alarm loop
+				Card-level flash animation
+	Shared Audio Context (one AudioContext for all cards)

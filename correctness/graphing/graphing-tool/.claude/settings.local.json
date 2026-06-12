@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__fm-gui__get-feature-model",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "mcp__fm-gui__summary-gui",
+      "Bash(git init *)",
+      "Bash(npm create *)",
+      "Bash(npx create-vite@latest . --template react --force)",
+      "Bash(npx vite *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npx kill-port *)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "fm-gui"
+  ]
+}

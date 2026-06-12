@@ -1,0 +1,1224 @@
+╭─── Claude Code v2.1.119 ─────────────────────────────────────────────────────╮
+│                                              │ Tips for getting started      │
+│              Welcome back Jacob!             │ Run /init to create a CLAUDE… │
+│                                              │ ───────────────────────────── │
+│                    ▐▛███▜▌                   │ Recent activity               │
+│                   ▝▜█████▛▘                  │ No recent activity            │
+│                     ▘▘ ▝▝                    │                               │
+│                                              │                               │
+│   Sonnet 4.6 · Claude Enterprise · Centiro   │                               │
+│           ~\Documents\battleship2            │                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+✻ Conversation compacted (ctrl+o for history)
+
+  ⎿  Read src\App.css (282 lines)
+  ⎿  Read src\App.jsx (151 lines)
+  ⎿  Read src\components\OpponentBoard.jsx (115 lines)
+  ⎿  Read src\components\GameBoard.jsx (138 lines)
+  ⎿  Read src\hooks\useBattleship.js (172 lines)
+  ⎿  Skills restored (embedded-feature-annotation, feature-model)
+
+● Let me check the remaining files before starting implementation.
+
+  Read 4 files (ctrl+o to expand)
+
+● Let me also check the remaining files.
+
+  Searched for 1 pattern, read 4 files (ctrl+o to expand)
+
+● Now I have everything I need. Let me implement all three features in parallel.
+
+● Update(.feature-model)
+  ⎿  Added 2 lines, removed 2 lines
+       3      Fleet
+       4          ShipDesign
+       5      ShipPlacement
+       6 -        ClickPlacement                                         
+       6          DragAndDropPlacement
+       8 -        PlacementModeSelection                                 
+       7      ShipRotation
+       8 +    RoomManagement                                             
+       9      NetworkGame
+      10      GamePlay
+      11          FiringPhase
+      12 +        Animations                                             
+      13          TurnManagement
+      14          WinCondition
+
+● Write(server.js)
+  ⎿  Added 92 lines, removed 51 lines
+       17    return { id, socketId, board: emptyGrid(), shots: emptyGrid(
+           ), ready: false, rematchVote: false };
+       18  }
+       19  
+       20 -let state = { phase: 'waiting', players: {}, currentTurn: null
+          - };                                                           
+       20 +const rooms = new Map();      // roomCode → room state        
+       21 +const socketRoom = new Map(); // socketId → roomCode          
+       22  
+       22 -function resetKeepingPlayers() {                              
+       23 -  for (const p of Object.values(state.players)) {             
+       24 -    Object.assign(p, { board: emptyGrid(), shots: emptyGrid(),
+          - ready: false, rematchVote: false });                         
+       23 +// &begin[RoomManagement]                                     
+       24 +function generateCode() {                                     
+       25 +  return Math.random().toString(36).slice(2, 6).toUpperCase();
+       26 +}                                                             
+       27 +                                                              
+       28 +function availableRooms() {                                   
+       29 +  const list = [];                                            
+       30 +  for (const [code, room] of rooms) {                         
+       31 +    const n = Object.keys(room.players).length;               
+       32 +    if (n < 2 && room.phase === 'waiting') list.push({ code, p
+          +layerCount: n });                                             
+       33    }
+       26 -  state.phase = 'placement';                                  
+       27 -  state.currentTurn = null;                                   
+       34 +  return list;                                                
+       35  }
+       36  
+       37 +function broadcastRoomsList() {                               
+       38 +  io.emit('rooms_list', availableRooms());                    
+       39 +}                                                             
+       40 +// &end[RoomManagement]                                       
+       41 +                                                              
+       42  io.on('connection', socket => {
+       31 -  const count = Object.keys(state.players).length;            
+       32 -  if (count >= 2) { socket.emit('room_full'); return; }       
+       43 +  // &begin[RoomManagement]                                   
+       44 +  socket.emit('rooms_list', availableRooms());                
+       45  
+       34 -  const playerId = count === 0 ? 'P1' : 'P2';                 
+       35 -  state.players[socket.id] = freshPlayer(socket.id, playerId);
+       36 -  socket.join('room');                                        
+       46 +  socket.on('create_room', () => {                            
+       47 +    let code;                                                 
+       48 +    do { code = generateCode(); } while (rooms.has(code));    
+       49 +    const room = { phase: 'waiting', players: {}, currentTurn:
+          + null };                                                      
+       50 +    rooms.set(code, room);                                    
+       51 +    room.players[socket.id] = freshPlayer(socket.id, 'P1');   
+       52 +    socketRoom.set(socket.id, code);                          
+       53 +    socket.join(code);                                        
+       54 +    socket.emit('room_created', { roomCode: code, playerId: 'P
+          +1' });                                                        
+       55 +    broadcastRoomsList();                                     
+       56 +  });                                                         
+       57  
+       38 -  const newCount = Object.keys(state.players).length;         
+       39 -  socket.emit('joined', { playerId, playerCount: newCount }); 
+       40 -  socket.to('room').emit('opponent_joined');                  
+       58 +  socket.on('join_room', ({ roomCode }) => {                  
+       59 +    const room = rooms.get(roomCode);                         
+       60 +    if (!room || Object.keys(room.players).length >= 2) {     
+       61 +      socket.emit('join_error', { message: 'Room not available
+          +' });                                                         
+       62 +      return;                                                 
+       63 +    }                                                         
+       64 +    room.players[socket.id] = freshPlayer(socket.id, 'P2');   
+       65 +    socketRoom.set(socket.id, roomCode);                      
+       66 +    socket.join(roomCode);                                    
+       67 +    socket.emit('room_joined', { roomCode, playerId: 'P2' }); 
+       68 +    socket.to(roomCode).emit('opponent_joined');              
+       69 +    room.phase = 'placement';                                 
+       70 +    io.to(roomCode).emit('phase_change', { phase: 'placement' 
+          +});                                                           
+       71 +    broadcastRoomsList();                                     
+       72 +  });                                                         
+       73 +  // &end[RoomManagement]                                     
+       74  
+       42 -  if (newCount === 2) {                                       
+       43 -    state.phase = 'placement';                                
+       44 -    io.to('room').emit('phase_change', { phase: 'placement' })
+          -;                                                             
+       45 -  }                                                           
+       46 -                                                              
+       75    // &begin[FiringPhase]
+       76    socket.on('ships_placed', ({ grid }) => {
+       49 -    const p = state.players[socket.id];                       
+       77 +    const roomCode = socketRoom.get(socket.id);               
+       78 +    const room = roomCode ? rooms.get(roomCode) : null;       
+       79 +    const p = room?.players[socket.id];                       
+       80      if (!p || p.ready) return;
+       81      p.board = grid;
+       82      p.ready = true;
+       53 -    socket.to('room').emit('opponent_ready');                 
+       54 -    const allReady = Object.values(state.players).every(x => x
+          -.ready);                                                      
+       83 +    socket.to(roomCode).emit('opponent_ready');               
+       84 +    const allReady = Object.values(room.players).every(x => x.
+          +ready);                                                       
+       85      if (allReady) {
+       56 -      const ids = Object.keys(state.players);                 
+       57 -      state.currentTurn = ids[Math.floor(Math.random() * 2)]; 
+       58 -      state.phase = 'playing';                                
+       59 -      io.to('room').emit('game_start', { firstTurnId: state.pl
+          -ayers[state.currentTurn].id });                               
+       86 +      const ids = Object.keys(room.players);                  
+       87 +      room.currentTurn = ids[Math.floor(Math.random() * 2)];  
+       88 +      room.phase = 'playing';                                 
+       89 +      io.to(roomCode).emit('game_start', { firstTurnId: room.p
+          +layers[room.currentTurn].id });                               
+       90      }
+       91    });
+       62 -  // &end[FiringPhase]                                        
+       92  
+       64 -  // &begin[FiringPhase]                                      
+       93    socket.on('fire', ({ row, col }) => {
+       66 -    if (state.phase !== 'playing' || state.currentTurn !== soc
+          -ket.id) return;                                               
+       67 -    const ids = Object.keys(state.players);                   
+       94 +    const roomCode = socketRoom.get(socket.id);               
+       95 +    const room = roomCode ? rooms.get(roomCode) : null;       
+       96 +    if (!room || room.phase !== 'playing' || room.currentTurn 
+          +!== socket.id) return;                                        
+       97 +    const ids = Object.keys(room.players);                    
+       98      const oppId = ids.find(id => id !== socket.id);
+       69 -    const shooter = state.players[socket.id];                 
+       70 -    const opp = state.players[oppId];                         
+       99 +    const shooter = room.players[socket.id];                  
+      100 +    const opp = room.players[oppId];                          
+      101      if (!opp || shooter.shots[row][col]) return;
+      102  
+      103      const hitShipId = opp.board[row][col];
+     ...
+      122          if (opp.board[r][c]) allOppCells.push([r, c]);
+      123      if (allOppCells.every(([r, c]) => shooter.shots[r][c] === 
+           'hit')) {
+      124        winnerId = shooter.id;
+       95 -      state.phase = 'finished';                               
+      125 +      room.phase = 'finished';                                
+      126      }
+      127      // &end[WinCondition]
+      128  
+       99 -    if (!winnerId) state.currentTurn = oppId;                 
+      129 +    if (!winnerId) room.currentTurn = oppId;                  
+      130  
+      101 -    io.to('room').emit('fire_result', {                       
+      131 +    io.to(roomCode).emit('fire_result', {                     
+      132        shooterSocketId: socket.id, row, col, hit, sunkShipData,
+            winnerId,
+      103 -      nextTurnId: winnerId ? null : state.players[oppId].id,  
+      133 +      nextTurnId: winnerId ? null : room.players[oppId].id,   
+      134      });
+      135    });
+      136    // &end[FiringPhase]
+      137  
+      138    socket.on('request_rematch', () => {
+      109 -    const p = state.players[socket.id];                       
+      139 +    const roomCode = socketRoom.get(socket.id);               
+      140 +    const room = roomCode ? rooms.get(roomCode) : null;       
+      141 +    const p = room?.players[socket.id];                       
+      142      if (!p) return;
+      143      p.rematchVote = true;
+      112 -    socket.to('room').emit('opponent_wants_rematch');         
+      113 -    if (Object.values(state.players).every(x => x.rematchVote)
+          -) {                                                           
+      114 -      resetKeepingPlayers();                                  
+      115 -      io.to('room').emit('phase_change', { phase: 'placement' 
+          -});                                                           
+      144 +    socket.to(roomCode).emit('opponent_wants_rematch');       
+      145 +    if (Object.values(room.players).every(x => x.rematchVote))
+          + {                                                            
+      146 +      for (const pl of Object.values(room.players))           
+      147 +        Object.assign(pl, { board: emptyGrid(), shots: emptyGr
+          +id(), ready: false, rematchVote: false });                    
+      148 +      room.phase = 'placement';                               
+      149 +      room.currentTurn = null;                                
+      150 +      io.to(roomCode).emit('phase_change', { phase: 'placement
+          +' });                                                         
+      151      }
+      152    });
+      153  
+      154    socket.on('disconnect', () => {
+      120 -    if (!state.players[socket.id]) return;                    
+      121 -    const remainingEntry = Object.entries(state.players).find(
+          -([id]) => id !== socket.id);                                  
+      122 -    delete state.players[socket.id];                          
+      123 -    state.phase = 'waiting';                                  
+      124 -    state.currentTurn = null;                                 
+      125 -    if (remainingEntry) {                                     
+      126 -      const [remId, remPlayer] = remainingEntry;              
+      155 +    const roomCode = socketRoom.get(socket.id);               
+      156 +    socketRoom.delete(socket.id);                             
+      157 +    if (!roomCode) return;                                    
+      158 +    const room = rooms.get(roomCode);                         
+      159 +    if (!room || !room.players[socket.id]) return;            
+      160 +    delete room.players[socket.id];                           
+      161 +    const remaining = Object.entries(room.players);           
+      162 +    if (remaining.length === 0) {                             
+      163 +      rooms.delete(roomCode);                                 
+      164 +    } else {                                                  
+      165 +      const [remId, remPlayer] = remaining[0];                
+      166        const keptId = remPlayer.id;
+      128 -      state.players[remId] = freshPlayer(remId, keptId);      
+      129 -      // Notify and re-confirm their player ID so client can r
+          -econnect cleanly                                              
+      130 -      io.to(remId).emit('session_reset', { playerId: keptId })
+          -;                                                             
+      167 +      room.players[remId] = freshPlayer(remId, keptId);       
+      168 +      room.phase = 'waiting';                                 
+      169 +      room.currentTurn = null;                                
+      170 +      io.to(remId).emit('session_reset', { playerId: keptId, r
+          +oomCode });                                                   
+      171      }
+      172 +    broadcastRoomsList();                                     
+      173    });
+      174  });
+      175  
+
+● Write(src\hooks\useBattleship.js)
+  ⎿  Added 3 lines, removed 39 lines
+      26    const [hoverPos, setHoverPos] = useState(null);
+      27    // &end[ShipPlacement]
+      28  
+      29 -  // &begin[ClickPlacement]                                    
+      30 -  const [selectedShip, setSelectedShip] = useState(null);      
+      31 -  // &end[ClickPlacement]                                      
+      32 -                                                               
+      29    // &begin[DragAndDropPlacement]
+      30    const [dragShipId, setDragShipId] = useState(null);
+      31    // &end[DragAndDropPlacement]
+     ...
+       73    const unplacedShips = useMemo(() => SHIPS.filter(s => !place
+           dShips[s.id]), [placedShips]);
+       74    const allPlaced = unplacedShips.length === 0;
+       75  
+       80 -  const activeShipId = dragShipId ?? selectedShip;            
+       76    const preview = useMemo(() => {
+       82 -    if (!hoverPos || !activeShipId) return null;              
+       83 -    const ship = SHIPS.find(s => s.id === activeShipId);      
+       77 +    if (!hoverPos || !dragShipId) return null;                
+       78 +    const ship = SHIPS.find(s => s.id === dragShipId);        
+       79      if (!ship) return null;
+       80      const cells = getShipCells(hoverPos.row, hoverPos.col, shi
+           p.size, orientation);
+       81      return { cells, valid: isValidPlacement(grid, cells) };
+       87 -  }, [hoverPos, activeShipId, orientation, grid]);            
+       82 +  }, [hoverPos, dragShipId, orientation, grid]);              
+       83  
+       84    const resetBoard = useCallback(() => {
+       85      setGrid(createEmptyGrid());
+       86      setPlacedShips({});
+       92 -    setSelectedShip(null);                                    
+       87      setDragShipId(null);
+       88      setHoverPos(null);
+       89    }, []);
+       90    // &end[ShipPlacement]
+       91  
+       98 -  // &begin[ClickPlacement]                                   
+       99 -  const handleCellClick = useCallback(                        
+      100 -    (row, col) => {                                           
+      101 -      const existingShipId = grid[row][col];                  
+      102 -      // Clicking a placed ship lifts it back for re-placement
+      103 -      if (existingShipId) {                                   
+      104 -        removeShip(existingShipId);                           
+      105 -        setSelectedShip(existingShipId);                      
+      106 -        setDragShipId(null);                                  
+      107 -        return;                                               
+      108 -      }                                                       
+      109 -      if (!selectedShip) return;                              
+      110 -      const placed = placeShip(row, col, selectedShip, orienta
+          -tion);                                                        
+      111 -      if (placed) setSelectedShip(null);                      
+      112 -    },                                                        
+      113 -    [grid, selectedShip, orientation, placeShip, removeShip]  
+      114 -  );                                                          
+      115 -                                                              
+      116 -  const handleSelectShip = useCallback(shipId => {            
+      117 -    setSelectedShip(prev => (prev === shipId ? null : shipId))
+          -;                                                             
+      118 -    setDragShipId(null);                                      
+      119 -  }, []);                                                     
+      120 -  // &end[ClickPlacement]                                     
+      121 -                                                              
+       92    // &begin[DragAndDropPlacement]
+       93    const handleDragStart = useCallback(shipId => {
+       94      setDragShipId(shipId);
+      125 -    setSelectedShip(null);                                    
+       95    }, []);
+       96  
+       97    const handleDragEnd = useCallback(() => {
+     ...
+      109      [dragShipId, orientation, placeShip]
+      110    );
+      111  
+      143 -  // Lift a placed ship for re-dragging (drag mode)           
+      112    const handleLiftDrag = useCallback(shipId => {
+      113      removeShip(shipId);
+      114      setDragShipId(shipId);
+      147 -    setSelectedShip(null);                                    
+      115    }, [removeShip]);
+      116    // &end[DragAndDropPlacement]
+      117  
+     ...
+      120      placedShips,
+      121      unplacedShips,
+      122      allPlaced,
+      156 -    selectedShip,                                             
+      157 -    handleSelectShip,                                         
+      123      orientation,
+      124      toggleOrientation,
+      125      hoverPos,
+     ...
+      127      dragShipId,
+      128      handleDragStart,
+      129      handleDragEnd,
+      165 -    handleCellClick,                                          
+      130      handleDrop,
+      131      handleLiftDrag,
+      132      preview,
+
+● Write(src\hooks\useGame.js)
+  ⎿  Added 66 lines, removed 19 lines
+      12    const [myPlayerId, setMyPlayerId] = useState(null);
+      13    const [opponentReady, setOpponentReady] = useState(false);
+      14  
+      15 -  // &begin[PlacementModeSelection]                            
+      16 -  const [placementMode, setPlacementMode] = useState(null);    
+      17 -  // &end[PlacementModeSelection]                              
+      15 +  // &begin[RoomManagement]                                    
+      16 +  const [roomCode, setRoomCode] = useState(null);              
+      17 +  const [availableRooms, setAvailableRooms] = useState([]);    
+      18 +  // &end[RoomManagement]                                      
+      19  
+      20    // &begin[FiringPhase]
+      21    const [myShots, setMyShots] = useState(emptyGrid);
+     ...
+      32    const [opponentWantsRematch, setOpponentWantsRematch] = useSt
+          ate(false);
+      33    // &end[WinCondition]
+      34  
+      35 +  // &begin[Animations]                                        
+      36 +  const [justSunkOffenseId, setJustSunkOffenseId] = useState(nu
+         +ll);                                                           
+      37 +  const [justSunkDefenseId, setJustSunkDefenseId] = useState(nu
+         +ll);                                                           
+      38 +  // &end[Animations]                                          
+      39 +                                                               
+      40    const placement = useBattleship();
+      41  
+      42    useEffect(() => {
+      43      if (!socket) return;
+      44  
+      39 -    socket.on('joined', ({ playerId, playerCount }) => {       
+      45 +    if (socket.connected) setPhase(prev => prev === 'lobby' ? '
+         +room_lobby' : prev);                                           
+      46 +    socket.on('connect', () => setPhase(prev => prev === 'lobby
+         +' ? 'room_lobby' : prev));                                     
+      47 +                                                               
+      48 +    // &begin[RoomManagement]                                  
+      49 +    socket.on('rooms_list', rooms => setAvailableRooms(rooms));
+      50 +                                                               
+      51 +    socket.on('room_created', ({ roomCode: code, playerId }) =>
+         + {                                                             
+      52 +      setRoomCode(code);                                       
+      53        setMyPlayerId(playerId);
+      41 -      if (playerCount === 2) setPhase('mode_selection');       
+      54 +      setPhase('room_waiting');                                
+      55      });
+      56  
+      44 -    socket.on('opponent_joined', () => setPhase('mode_selection
+         -'));                                                           
+      57 +    socket.on('room_joined', ({ roomCode: code, playerId }) => 
+         +{                                                              
+      58 +      setRoomCode(code);                                       
+      59 +      setMyPlayerId(playerId);                                 
+      60 +    });                                                        
+      61  
+      62 +    socket.on('join_error', () => {});                         
+      63 +    socket.on('opponent_joined', () => {});                    
+      64 +    // &end[RoomManagement]                                    
+      65 +                                                               
+      66      socket.on('phase_change', ({ phase: p }) => {
+      67        if (p === 'placement') {
+      68          placement.resetBoard();
+     ...
+      72          setOpponentReady(false);
+      73          setWinner(null);
+      74          setOpponentWantsRematch(false);
+      55 -        setPhase('mode_selection');                            
+      75 +        // &begin[Animations]                                  
+      76 +        setJustSunkOffenseId(null);                            
+      77 +        setJustSunkDefenseId(null);                            
+      78 +        // &end[Animations]                                    
+      79 +        setPhase('placement');                                 
+      80        }
+      81      });
+      82  
+     ...
+       98            next[row][col] = hit ? 'hit' : 'miss';
+       99            return next;
+      100          });
+       77 -        if (sunkShipData) setSunkByMe(prev => [...prev, sunkSh
+          -ipData]);                                                     
+      101 +        if (sunkShipData) {                                   
+      102 +          setSunkByMe(prev => [...prev, sunkShipData]);       
+      103 +          // &begin[Animations]                               
+      104 +          setJustSunkOffenseId(sunkShipData.id);              
+      105 +          setTimeout(() => setJustSunkOffenseId(null), 1500); 
+      106 +          // &end[Animations]                                 
+      107 +        }                                                     
+      108        } else {
+      109          setOpponentShots(prev => {
+      110            const next = prev.map(r => [...r]);
+      111            next[row][col] = hit ? 'hit' : 'miss';
+      112            return next;
+      113          });
+      114 +        // &begin[Animations]                                 
+      115 +        if (sunkShipData) {                                   
+      116 +          setJustSunkDefenseId(sunkShipData.id);              
+      117 +          setTimeout(() => setJustSunkDefenseId(null), 1500); 
+      118 +        }                                                     
+      119 +        // &end[Animations]                                   
+      120        }
+      121        // &begin[WinCondition]
+      122        if (winnerId) {
+     ...
+      131  
+      132      socket.on('opponent_wants_rematch', () => setOpponentWants
+           Rematch(true));
+      133  
+       98 -    // &begin[NetworkGame]                                    
+       99 -    socket.on('session_reset', ({ playerId }) => {            
+      134 +    socket.on('session_reset', ({ playerId, roomCode: code }) 
+          +=> {                                                          
+      135        placement.resetBoard();
+      136        setMyShots(emptyGrid());
+      137        setOpponentShots(emptyGrid());
+     ...
+      140        setWinner(null);
+      141        setOpponentWantsRematch(false);
+      142        setMyPlayerId(playerId);
+      108 -      setPhase('lobby');                                      
+      143 +      setRoomCode(code);                                      
+      144 +      setPhase('room_waiting');                               
+      145      });
+      110 -    // &end[NetworkGame]                                      
+      146  
+      147      return () => {
+      113 -      socket.off('joined');                                   
+      148 +      socket.off('connect');                                  
+      149 +      socket.off('rooms_list');                               
+      150 +      socket.off('room_created');                             
+      151 +      socket.off('room_joined');                              
+      152 +      socket.off('join_error');                               
+      153        socket.off('opponent_joined');
+      154        socket.off('phase_change');
+      155        socket.off('opponent_ready');
+     ...
+      160      };
+      161    }, [socket, myPlayerId]);
+      162  
+      124 -  const choosePlacementMode = useCallback(mode => {           
+      125 -    setPlacementMode(mode);                                   
+      126 -    setPhase('placement');                                    
+      127 -  }, []);                                                     
+      163 +  // &begin[RoomManagement]                                   
+      164 +  const createRoom = useCallback(() => {                      
+      165 +    if (!socket) return;                                      
+      166 +    socket.emit('create_room');                               
+      167 +  }, [socket]);                                               
+      168  
+      169 +  const joinRoom = useCallback(code => {                      
+      170 +    if (!socket) return;                                      
+      171 +    socket.emit('join_room', { roomCode: code });             
+      172 +  }, [socket]);                                               
+      173 +  // &end[RoomManagement]                                     
+      174 +                                                              
+      175    const submitPlacement = useCallback(() => {
+      176      if (!placement.allPlaced || !socket) return;
+      177      socket.emit('ships_placed', { grid: placement.grid });
+     ...
+      191    }, [socket]);
+      192  
+      193    return {
+      148 -    phase, myPlayerId,                                        
+      149 -    placementMode, choosePlacementMode,                       
+      194 +    phase, myPlayerId, roomCode,                              
+      195 +    availableRooms, createRoom, joinRoom,                     
+      196      placement,
+      197      opponentReady,
+      198      myShots, opponentShots, sunkByMe,
+      199      isMyTurn,
+      200      winner, opponentWantsRematch,
+      201 +    justSunkOffenseId, justSunkDefenseId,                     
+      202      submitPlacement, fire, requestRematch,
+      203    };
+      204  }
+
+● Write(src\components\RoomLobby.jsx)
+  ⎿  Wrote 55 lines to src\components\RoomLobby.jsx
+       2 export default function RoomLobby({ connected, phase, myPlayerId
+         , roomCode, availableRooms, onCreateRoom, onJoinRoom }) {
+       3   if (!connected || phase === 'lobby') {
+       4     return (
+       5       <div className="screen lobby-screen">
+       6         <h1 className="app-title">BATTLESHIP</h1>
+       7         <div className="lobby-card">
+       8           <div className="spinner" />
+       9           <p className="lobby-status">Connecting to server…</p>
+      10         </div>
+     … +52 lines (ctrl+o to expand)
+
+● Write(src\components\ShipPanel.jsx)
+  ⎿  Added 6 lines, removed 21 lines
+       1  import ShipGraphic from './ShipGraphic';
+       2  
+       3  // &begin[Fleet]
+       4 -function ShipItem({ ship, selected, dragging, placementMode, or
+         -ientation, onSelect, onDragStart, onDragEnd }) {               
+       5 -  const isDragMode = placementMode === 'drag';                 
+       6 -  const isClickMode = placementMode === 'click';               
+       7 -                                                               
+       4 +function ShipItem({ ship, dragging, onDragStart, onDragEnd }) {
+       5    return (
+       6      <div
+      10 -      className={`ship-item${selected ? ' selected' : ''}${drag
+         -ging ? ' dragging' : ''}`}                                     
+      11 -      draggable={isDragMode}                                   
+      12 -      // &begin[ClickPlacement]                                
+      13 -      onClick={isClickMode ? () => onSelect(ship.id) : undefine
+         -d}                                                             
+      14 -      // &end[ClickPlacement]                                  
+      15 -      // &begin[DragAndDropPlacement]                          
+      16 -      onDragStart={isDragMode ? e => { e.dataTransfer.effectAll
+         -owed = 'move'; onDragStart(ship.id); } : undefined}            
+      17 -      onDragEnd={isDragMode ? onDragEnd : undefined}           
+      18 -      // &end[DragAndDropPlacement]                            
+      19 -      style={{ cursor: isDragMode ? 'grab' : isClickMode ? 'poi
+         -nter' : 'default' }}                                           
+       7 +      className={`ship-item${dragging ? ' dragging' : ''}`}    
+       8 +      draggable                                                
+       9 +      onDragStart={e => { e.dataTransfer.effectAllowed = 'move'
+         +; onDragStart(ship.id); }}                                     
+      10 +      onDragEnd={onDragEnd}                                    
+      11 +      style={{ cursor: 'grab' }}                               
+      12      >
+      13        <div className="ship-name">{ship.name} <span className="s
+          hip-size">×{ship.size}</span></div>
+      14        <div className="ship-graphic-preview">
+     ...
+      22  // &begin[Fleet]
+      23  export default function ShipPanel({
+      24    unplacedShips,
+      33 -  selectedShip,                                                
+      25    dragShipId,
+      26    orientation,
+      36 -  placementMode,                                               
+      37 -  onSelectShip,                                                
+      27    onDragStart,
+      28    onDragEnd,
+      29    onToggleOrientation,
+     ...
+      51              <ShipItem
+      52                key={ship.id}
+      53                ship={ship}
+      65 -              selected={selectedShip === ship.id}              
+      54                dragging={dragShipId === ship.id}
+      67 -              placementMode={placementMode}                    
+      68 -              orientation={orientation}                        
+      69 -              onSelect={onSelectShip}                          
+      55                onDragStart={onDragStart}
+      56                onDragEnd={onDragEnd}
+      57              />
+
+● Write(src\components\OpponentBoard.jsx)
+  ⎿  Added 10 lines, removed 5 lines
+      26  }
+      27  
+      28  // &begin[FiringPhase]
+      29 +// &begin[Animations]                                          
+      30  function ShotMarker({ type }) {
+      31    if (type === 'hit') return (
+      31 -    <svg viewBox="0 0 44 44" style={{ position: 'absolute', ins
+         -et: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+      32 +    <svg className="shot-hit-anim" viewBox="0 0 44 44" style={{
+         + position: 'absolute', inset: 0, width: '100%', height: '100%',
+         + pointerEvents: 'none' }}>                                     
+      33        <circle cx="22" cy="22" r="12" fill="#ef4444" opacity="0.
+          85" />
+      34        <line x1="16" y1="16" x2="28" y2="28" stroke="#fff" strok
+          eWidth="2.5" strokeLinecap="round" />
+      35        <line x1="28" y1="16" x2="16" y2="28" stroke="#fff" strok
+          eWidth="2.5" strokeLinecap="round" />
+      36      </svg>
+      37    );
+      38    if (type === 'miss') return (
+      38 -    <svg viewBox="0 0 44 44" style={{ position: 'absolute', ins
+         -et: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+      39 +    <svg className="shot-miss-anim" viewBox="0 0 44 44" style={
+         +{ position: 'absolute', inset: 0, width: '100%', height: '100%'
+         +, pointerEvents: 'none' }}>                                    
+      40        <circle cx="22" cy="22" r="7" fill="#93c5fd" opacity="0.7
+          " />
+      41        <circle cx="22" cy="22" r="12" fill="none" stroke="#93c5f
+          d" strokeWidth="1.5" opacity="0.4" />
+      42        <circle cx="22" cy="22" r="17" fill="none" stroke="#93c5f
+          d" strokeWidth="1" opacity="0.2" />
+     ...
+      44    );
+      45    return null;
+      46  }
+      47 +// &end[Animations]                                            
+      48  
+      47 -export default function OpponentBoard({ myShots, sunkShips, isM
+         -yTurn, onFire }) {                                             
+      49 +export default function OpponentBoard({ myShots, sunkShips, isM
+         +yTurn, onFire, justSunkOffenseId }) {                          
+      50    const sunkCellSet = new Set(sunkShips.flatMap(s => s.cells.ma
+          p(([r, c]) => `${r}-${c}`)));
+      51  
+      52    return (
+     ...
+      59            <React.Fragment key={row}>
+      60              <div className="board-header">{row + 1}</div>
+      61              {Array.from({ length: GRID_SIZE }, (_, col) => {
+      60 -              const key   = `${row}-${col}`;                   
+      61 -              const shot  = myShots[row][col];                 
+      62 +              const key    = `${row}-${col}`;                  
+      63 +              const shot   = myShots[row][col];                
+      64                const isSunk = sunkCellSet.has(key);
+      65                const canFire = isMyTurn && !shot;
+      66                const cls = [
+     ...
+       92          return (
+       93            <div
+       94              key={id}
+       95 +            // &begin[Animations]                             
+       96 +            className={id === justSunkOffenseId ? 'ship-reveal
+          +ing' : ''}                                                    
+       97 +            // &end[Animations]                               
+       98              style={{
+       99                position: 'absolute',
+      100                left:    cellLeft(col),
+
+● Write(src\components\GameBoard.jsx)
+  ⎿  Added 50 lines, removed 26 lines
+       3  import ShipGraphic from './ShipGraphic';
+       4  
+       5  // Pixel layout constants — must match App.css board-wrapper/bo
+          ard-grid values
+       6 -const PAD  = 10;   // board-wrapper padding                    
+       7 -const HDR  = 28;   // header col/row size                      
+       8 -const CELL = 44;   // cell size                                
+       9 -const GAP  = 2;    // grid gap                                 
+      10 -const STEP = CELL + GAP; // 46 px per cell                     
+       6 +const PAD  = 10;                                               
+       7 +const HDR  = 28;                                               
+       8 +const CELL = 44;                                               
+       9 +const GAP  = 2;                                                
+      10 +const STEP = CELL + GAP;                                       
+      11  
+      12  function cellLeft(col) { return PAD + HDR + GAP + col * STEP; }
+      13  function cellTop(row)  { return PAD + HDR + GAP + row * STEP; }
+     ...
+      17  function sizeOf(id) { return SIZES[id] ?? 1; }
+      18  
+      19  // &begin[GameBoard]
+      20 +// &begin[Animations]                                          
+      21  function ShotMarker({ type }) {
+      22    if (type === 'hit') return (
+      22 -    <svg viewBox="0 0 44 44" style={{ position: 'absolute', ins
+         -et: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+      23 +    <svg className="shot-hit-anim" viewBox="0 0 44 44" style={{
+         + position: 'absolute', inset: 0, width: '100%', height: '100%',
+         + pointerEvents: 'none' }}>                                     
+      24        <circle cx="22" cy="22" r="12" fill="#ef4444" opacity="0.
+          85" />
+      25        <line x1="16" y1="16" x2="28" y2="28" stroke="#fff" strok
+          eWidth="2.5" strokeLinecap="round" />
+      26        <line x1="28" y1="16" x2="16" y2="28" stroke="#fff" strok
+          eWidth="2.5" strokeLinecap="round" />
+      27      </svg>
+      28    );
+      29    if (type === 'miss') return (
+      29 -    <svg viewBox="0 0 44 44" style={{ position: 'absolute', ins
+         -et: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+      30 +    <svg className="shot-miss-anim" viewBox="0 0 44 44" style={
+         +{ position: 'absolute', inset: 0, width: '100%', height: '100%'
+         +, pointerEvents: 'none' }}>                                    
+      31        <circle cx="22" cy="22" r="7" fill="#93c5fd" opacity="0.7
+          " />
+      32        <circle cx="22" cy="22" r="12" fill="none" stroke="#93c5f
+          d" strokeWidth="1.5" opacity="0.4" />
+      33        <circle cx="22" cy="22" r="17" fill="none" stroke="#93c5f
+          d" strokeWidth="1" opacity="0.2" />
+     ...
+      35    );
+      36    return null;
+      37  }
+      38 +// &end[Animations]                                            
+      39  
+      40  export default function GameBoard({
+      41    grid,
+      42    preview,
+      41 -  onCellClick,                                                 
+      43    onCellHover,
+      44    onBoardLeave,
+      45    onDragOver,
+     ...
+      47    isPlacingMode,
+      48    placedShips,
+      49    incomingShots,
+      49 -  // placement-phase ship interaction                          
+      50 -  placementMode,                                               
+      50 +  justSunkDefenseId,                                           
+      51    onShipLiftDrag,
+      52  }) {
+      53    const previewSet = new Set((preview?.cells ?? []).map(([r, c]
+          ) => `${r}-${c}`));
+      54 +  const isDraggable = !!onShipLiftDrag;                        
+      55  
+      56 +  // Derive which defense ships are fully sunk from incoming sh
+         +ots                                                            
+      57 +  // &begin[Animations]                                        
+      58 +  const sunkDefenseIds = (() => {                              
+      59 +    if (!incomingShots) return new Set();                      
+      60 +    const shipCells = {};                                      
+      61 +    for (let r = 0; r < GRID_SIZE; r++)                        
+      62 +      for (let c = 0; c < GRID_SIZE; c++)                      
+      63 +        if (grid[r][c]) {                                      
+      64 +          const id = grid[r][c];                               
+      65 +          if (!shipCells[id]) shipCells[id] = [];              
+      66 +          shipCells[id].push([r, c]);                          
+      67 +        }                                                      
+      68 +    const sunk = new Set();                                    
+      69 +    for (const [id, cells] of Object.entries(shipCells))       
+      70 +      if (cells.every(([r, c]) => incomingShots[r][c] === 'hit'
+         +)) sunk.add(id);                                               
+      71 +    return sunk;                                               
+      72 +  })();                                                        
+      73 +  // &end[Animations]                                          
+      74 +                                                               
+      75    return (
+      76      <div
+      77        className={`board-wrapper${isPlacingMode ? ' placing-mode
+          ' : ''}`}
+      78        style={{ position: 'relative' }}
+      79        onMouseLeave={onBoardLeave}
+      80      >
+      61 -      {/* ── Grid cells (no ship overlays here) ─────── */}    
+      81        <div className="board-grid">
+      82          <div className="board-corner" />
+      83          {COLS.map(c => <div key={c} className="board-header">{c
+          }</div>)}
+     ...
+      86            <React.Fragment key={row}>
+      87              <div className="board-header">{row + 1}</div>
+      88              {Array.from({ length: GRID_SIZE }, (_, col) => {
+      70 -              const key   = `${row}-${col}`;                   
+      71 -              const shipId = grid[row][col];                   
+      89 +              const key     = `${row}-${col}`;                 
+      90 +              const shipId  = grid[row][col];                  
+      91                const isPreview = previewSet.has(key);
+      73 -              const shot  = incomingShots?.[row]?.[col] ?? null
+         -;                                                              
+      74 -              const cls   = [                                  
+      92 +              const shot    = incomingShots?.[row]?.[col] ?? nu
+         +ll;                                                            
+      93 +              const cls     = [                                
+      94                  'cell',
+      95                  shipId    ? 'cell-placed'        : '',
+      96                  isPreview ? (preview.valid ? 'cell-preview-vali
+          d' : 'cell-preview-invalid') : '',
+     ...
+      101                    key={key}
+      102                    className={cls}
+      103                    style={{ position: 'relative' }}
+       85 -                  onClick={() => onCellClick?.(row, col)}     
+      104                    onMouseEnter={() => onCellHover?.(row, col)}
+      105                    onDragOver={e => { e.preventDefault(); onDra
+           gOver?.(row, col); }}
+      106                    onDrop={e => { e.preventDefault(); onDrop?.(
+           row, col); }}
+     ...
+      114        </div>
+      115  
+      116        {/* &begin[ShipDesign] */}
+       99 -      {/* ── Ship overlays — absolutely positioned, outside th
+          -e grid ── */}                                                 
+      117        {placedShips && Object.entries(placedShips).map(([id, { 
+           row, col, orientation }]) => {
+      118          const size = sizeOf(id);
+      119          const isH  = orientation === 'H';
+      103 -        const isDragMode = placementMode === 'drag';          
+      120 +        // &begin[Animations]                                 
+      121 +        const isSunk     = sunkDefenseIds.has(id);            
+      122 +        const isJustSunk = id === justSunkDefenseId;          
+      123 +        // &end[Animations]                                   
+      124  
+      125          return (
+      126            <div
+      127              key={id}
+      128 +            // &begin[Animations]                             
+      129 +            className={isJustSunk ? 'ship-destroyed' : ''}    
+      130 +            // &end[Animations]                               
+      131              style={{
+      132                position: 'absolute',
+      133                left:   cellLeft(col),
+     ...
+      137                zIndex: 2,
+      138                padding: 3,
+      139                boxSizing: 'border-box',
+      117 -              cursor: placementMode ? (isDragMode ? 'grab' : '
+          -pointer') : 'default',                                        
+      118 -              pointerEvents: placementMode ? 'all' : 'none',  
+      140 +              cursor: isDraggable ? 'grab' : 'default',       
+      141 +              pointerEvents: isDraggable ? 'all' : 'none',    
+      142 +              // &begin[Animations]                           
+      143 +              opacity: isSunk && !isJustSunk ? 0.35 : undefine
+          +d,                                                            
+      144 +              filter:  isSunk && !isJustSunk ? 'brightness(0.5
+          +) saturate(0.3) grayscale(0.5)' : undefined,                  
+      145 +              // &end[Animations]                             
+      146              }}
+      120 -            /* click-to-lift works in both modes */           
+      121 -            onClick={placementMode === 'click' ? () => onCellC
+          -lick?.(row, col) : undefined}                                 
+      122 -            /* drag-to-lift in drag mode */                   
+      123 -            draggable={isDragMode}                            
+      124 -            onDragStart={isDragMode ? e => {                  
+      147 +            draggable={isDraggable}                           
+      148 +            onDragStart={isDraggable ? e => {                 
+      149                e.dataTransfer.effectAllowed = 'move';
+      126 -              onShipLiftDrag?.(id);                           
+      150 +              onShipLiftDrag(id);                             
+      151              } : undefined}
+      152            >
+      153              <ShipGraphic shipId={id} orientation={orientation}
+            />
+
+● Write(src\App.jsx)
+  ⎿  Added 24 lines, removed 24 lines
+       4  import GameBoard from './components/GameBoard';
+       5  import OpponentBoard from './components/OpponentBoard';
+       6  import ShipPanel from './components/ShipPanel';
+       7 -import LobbyScreen from './components/LobbyScreen';            
+       8 -import PlacementModeScreen from './components/PlacementModeScre
+         -en';                                                           
+       7 +import RoomLobby from './components/RoomLobby';                
+       8  import './App.css';
+       9  
+      10  // &begin[Battleship]
+     ...
+      21    }, [placement.toggleOrientation]);
+      22    // &end[ShipRotation]
+      23  
+      25 -  // &begin[NetworkGame]                                       
+      26 -  if (!connected || phase === 'lobby') {                       
+      27 -    return <LobbyScreen connected={connected} myPlayerId={game.
+         -myPlayerId} />;                                                
+      24 +  // &begin[RoomManagement]                                    
+      25 +  if (phase === 'lobby' || phase === 'room_lobby' || phase === 
+         +'room_waiting') {                                              
+      26 +    return (                                                   
+      27 +      <RoomLobby                                               
+      28 +        connected={connected}                                  
+      29 +        phase={phase}                                          
+      30 +        myPlayerId={game.myPlayerId}                           
+      31 +        roomCode={game.roomCode}                               
+      32 +        availableRooms={game.availableRooms}                   
+      33 +        onCreateRoom={game.createRoom}                         
+      34 +        onJoinRoom={game.joinRoom}                             
+      35 +      />                                                       
+      36 +    );                                                         
+      37    }
+      29 -  // &end[NetworkGame]                                         
+      38 +  // &end[RoomManagement]                                      
+      39  
+      31 -  // &begin[PlacementModeSelection]                            
+      32 -  if (phase === 'mode_selection') {                            
+      33 -    return <PlacementModeScreen onSelect={game.choosePlacementM
+         -ode} />;                                                       
+      34 -  }                                                            
+      35 -  // &end[PlacementModeSelection]                              
+      36 -                                                               
+      40    if (phase === 'placement' || phase === 'waiting_opponent') {
+      38 -    const isPlacingMode = !!(placement.selectedShip || placemen
+         -t.dragShipId);                                                 
+      41 +    const isPlacingMode = phase === 'placement';               
+      42      const statusText = phase === 'waiting_opponent'
+      43        ? 'Fleet deployed — waiting for opponent…'
+      44        : placement.allPlaced
+      45        ? 'All ships placed — click Ready when set!'
+      43 -      : placement.selectedShip                                 
+      44 -      ? `Placing ${placement.selectedShip} · click a cell · R t
+         -o rotate`                                                      
+      45 -      : 'Select a ship to place · R to rotate';                
+      46 +      : placement.dragShipId                                   
+      47 +      ? 'Placing ship — drop on the board · R to rotate'       
+      48 +      : 'Drag a ship onto the board · R to rotate';            
+      49  
+      50      return (
+      51        <div className="app">
+      52          <header className="app-header">
+      53            <h1 className="app-title">BATTLESHIP</h1>
+      51 -          <p className="app-subtitle">{game.myPlayerId} · Place
+         - your fleet</p>                                                
+      54 +          <p className="app-subtitle">{game.myPlayerId} · Room 
+         +{game.roomCode} · Place your fleet</p>                         
+      55          </header>
+      56          <div className="game-area">
+      57            <ShipPanel
+      58              unplacedShips={placement.unplacedShips}
+      56 -            selectedShip={placement.selectedShip}              
+      59              dragShipId={placement.dragShipId}
+      60              orientation={placement.orientation}
+      59 -            placementMode={game.placementMode}                 
+      60 -            onSelectShip={placement.handleSelectShip}          
+      61              onDragStart={placement.handleDragStart}
+      62              onDragEnd={placement.handleDragEnd}
+      63              onToggleOrientation={placement.toggleOrientation}
+     ...
+      70                preview={placement.preview}
+      71                placedShips={placement.placedShips}
+      72                isPlacingMode={isPlacingMode}
+      73 -              placementMode={game.placementMode}               
+      74 -              onCellClick={game.placementMode === 'click' ? pla
+         -cement.handleCellClick : undefined}                            
+      73                onCellHover={(r, c) => placement.setHoverPos({ ro
+          w: r, col: c })}
+      74                onBoardLeave={() => placement.setHoverPos(null)}
+      75                onDragOver={(r, c) => placement.setHoverPos({ row
+          : r, col: c })}
+      78 -              onDrop={game.placementMode === 'drag' ? placement
+         -.handleDrop : undefined}                                       
+      79 -              onShipLiftDrag={game.placementMode === 'drag' ? p
+         -lacement.handleLiftDrag : undefined}                           
+      76 +              onDrop={placement.handleDrop}                    
+      77 +              onShipLiftDrag={isPlacingMode ? placement.handleL
+         +iftDrag : undefined}                                           
+      78              />
+      79              <div className={`status-bar${phase === 'waiting_opp
+          onent' ? ' ready' : ''}`}>
+      80                {statusText}
+     ...
+      112                grid={placement.grid}
+      113                placedShips={placement.placedShips}
+      114                incomingShots={game.opponentShots}
+      115 +              justSunkDefenseId={game.justSunkDefenseId}      
+      116              />
+      117            </div>
+      118  
+     ...
+      124                sunkShips={game.sunkByMe}
+      125                isMyTurn={game.isMyTurn && phase === 'playing'}
+      126                onFire={game.fire}
+      127 +              justSunkOffenseId={game.justSunkOffenseId}      
+      128              />
+      129              {/* &end[FiringPhase] */}
+      130            </div>
+
+● Now add the animation keyframes and room lobby CSS to App.css:
+
+● Update(src\App.css)
+  ⎿  Added 112 lines
+      279    background: #0a1628; border: 1px solid #1e3a5f; border-radiu
+           s: 12px;
+      280    color: #cbd5e1; font-size: 0.9rem; letter-spacing: 1px;
+      281  }
+      282 +                                                              
+      283 +/* ── Room lobby ─────────────────────────────────── */       
+      284 +.room-code-display {                                          
+      285 +  font-size: 2.8rem;                                          
+      286 +  font-weight: 800;                                           
+      287 +  letter-spacing: 12px;                                       
+      288 +  color: #93c5fd;                                             
+      289 +  text-shadow: 0 0 24px rgba(147,197,253,0.4);                
+      290 +  font-family: monospace;                                     
+      291 +}                                                             
+      292 +                                                              
+      293 +.room-lobby-card {                                            
+      294 +  display: flex;                                              
+      295 +  flex-direction: column;                                     
+      296 +  gap: 16px;                                                  
+      297 +  padding: 36px 40px;                                         
+      298 +  background: #0a1628;                                        
+      299 +  border: 1px solid #1e3a5f;                                  
+      300 +  border-radius: 16px;                                        
+      301 +  box-shadow: 0 0 40px rgba(0,0,0,0.5);                       
+      302 +  min-width: 340px;                                           
+      303 +  max-width: 480px;                                           
+      304 +  width: 100%;                                                
+      305 +}                                                             
+      306 +                                                              
+      307 +.create-room-btn {                                            
+      308 +  background: #1a3a5c;                                        
+      309 +  border: 1.5px solid #3b82f6;                                
+      310 +  color: #93c5fd;                                             
+      311 +  padding: 14px 28px;                                         
+      312 +  border-radius: 10px;                                        
+      313 +  cursor: pointer;                                            
+      314 +  font-size: 1rem;                                            
+      315 +  font-weight: 700;                                           
+      316 +  letter-spacing: 2px;                                        
+      317 +  text-transform: uppercase;                                  
+      318 +  transition: all 0.15s;                                      
+      319 +  font-family: inherit;                                       
+      320 +  width: 100%;                                                
+      321 +}                                                             
+      322 +.create-room-btn:hover { background: #2a4a6c; box-shadow: 0 0 
+          +16px rgba(59,130,246,0.3); }                                  
+      323 +                                                              
+      324 +.room-divider {                                               
+      325 +  display: flex; align-items: center; gap: 12px;              
+      326 +  color: #334155; font-size: 0.72rem; letter-spacing: 2px; tex
+          +t-transform: uppercase;                                       
+      327 +}                                                             
+      328 +.room-divider::before, .room-divider::after {                 
+      329 +  content: ''; flex: 1; border-top: 1px solid #1a3050;        
+      330 +}                                                             
+      331 +                                                              
+      332 +.room-list { display: flex; flex-direction: column; gap: 8px; 
+          +min-height: 60px; }                                           
+      333 +                                                              
+      334 +.room-list-empty {                                            
+      335 +  font-size: 0.78rem; color: #334155; text-align: center;     
+      336 +  padding: 16px 0; letter-spacing: 0.5px;                     
+      337 +}                                                             
+      338 +                                                              
+      339 +.room-item {                                                  
+      340 +  display: flex; align-items: center; gap: 12px;              
+      341 +  background: #071525; border: 1px solid #1a3050; border-radiu
+          +s: 8px;                                                       
+      342 +  padding: 10px 14px;                                         
+      343 +}                                                             
+      344 +                                                              
+      345 +.room-item-code {                                             
+      346 +  font-size: 1.1rem; font-weight: 800; letter-spacing: 4px;   
+      347 +  color: #93c5fd; font-family: monospace; flex: 1;            
+      348 +}                                                             
+      349 +                                                              
+      350 +.room-item-count { font-size: 0.7rem; color: #475569; letter-s
+          +pacing: 1px; }                                                
+      351 +                                                              
+      352 +.join-room-btn {                                              
+      353 +  background: #071525; border: 1px solid #3b82f6; color: #93c5
+          +fd;                                                           
+      354 +  padding: 6px 16px; border-radius: 6px; cursor: pointer;     
+      355 +  font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px;
+          + text-transform: uppercase;                                   
+      356 +  transition: all 0.15s; font-family: inherit;                
+      357 +}                                                             
+      358 +.join-room-btn:hover { background: #1a3a5c; box-shadow: 0 0 8p
+          +x rgba(59,130,246,0.2); }                                     
+      359 +                                                              
+      360 +/* ── Shot & ship animations ─────────────────────── */       
+      361 +@keyframes hitExplode {                                       
+      362 +  0%   { transform: scale(0.2); opacity: 0; }                 
+      363 +  45%  { transform: scale(1.25); opacity: 1; }                
+      364 +  75%  { transform: scale(0.97); }                            
+      365 +  100% { transform: scale(1); opacity: 1; }                   
+      366 +}                                                             
+      367 +                                                              
+      368 +@keyframes missSplash {                                       
+      369 +  0%   { transform: scale(0); opacity: 0; }                   
+      370 +  40%  { transform: scale(1.1); opacity: 1; }                 
+      371 +  70%  { transform: scale(0.97); }                            
+      372 +  100% { transform: scale(1); opacity: 1; }                   
+      373 +}                                                             
+      374 +                                                              
+      375 +@keyframes shipReveal {                                       
+      376 +  0%   { opacity: 0; transform: scale(0.85); filter: brightnes
+          +s(3) saturate(0); }                                           
+      377 +  30%  { opacity: 1; transform: scale(1.06); filter: brightnes
+          +s(2) saturate(1.5); }                                         
+      378 +  60%  { transform: scale(0.99); filter: brightness(1.3); }   
+      379 +  100% { opacity: 0.6; transform: scale(1); filter: brightness
+          +(1); }                                                        
+      380 +}                                                             
+      381 +                                                              
+      382 +@keyframes shipDestroyed {                                    
+      383 +  0%   { filter: brightness(1); }                             
+      384 +  15%  { filter: brightness(3) saturate(4) hue-rotate(-30deg);
+          + transform: scale(1.02); }                                    
+      385 +  40%  { filter: brightness(2) saturate(2); transform: scale(1
+          +); }                                                          
+      386 +  75%  { filter: brightness(1) saturate(1); }                 
+      387 +  100% { filter: brightness(0.5) saturate(0.3) grayscale(0.5);
+          + opacity: 0.35; }                                             
+      388 +}                                                             
+      389 +                                                              
+      390 +.shot-hit-anim  { animation: hitExplode  0.55s cubic-bezier(0.
+          +16, 1, 0.3, 1) forwards; }                                    
+      391 +.shot-miss-anim { animation: missSplash  0.65s cubic-bezier(0.
+          +16, 1, 0.3, 1) forwards; }                                    
+      392 +.ship-revealing { animation: shipReveal  1.3s ease-out forward
+          +s; }                                                          
+      393 +.ship-destroyed { animation: shipDestroyed 1.3s ease-out forwa
+          +rds; }                                                        
+
+● Now delete the obsolete components:
+
+● Bash(rm "C:\Users\JacobB\Documents\battleship2\src\components\LobbyScreen.jsx"
+       "C:\Users\JacobB\Documents\battleship2\src\components\PlacementModeScreen
+      .jsx")
+  ⎿  Done
+● Now let me start the dev server and verify it runs without errors:
+
+● Bash(cd "C:\Users\JacobB\Documents\battleship2" && npm run dev 2>&1 &)
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(sleep 8 && cat
+      "C:\Users\JacobB\AppData\Local\Temp\claude\C--Users-JacobB-Documents-battl
+      eship2\db2a31a0-0a4e-42c6-9984-071e36ba1c8c\tasks\bxwjk8r9n.output")
+  ⎿  > battleship@0.0.0 dev
+     > concurrently "vite" "node --watch server.js"
+     … +20 lines (ctrl+o to expand)
+  ⎿  (timeout 20s)
+
+● Background command "Start dev server in background" completed (exit code 0)
+
+● Port 3001 is occupied by a previous session. Let me kill the old server
+  processes:
+
+● Bash(npx kill-port 3001 2>&1; npx kill-port 5173 2>&1; npx kill-port 5174
+      2>&1; npx kill-port 5175 2>&1)
+  ⎿  npm warn exec The following package was not found and will be installe
+     d: kill-port@2.0.1
+     Process on port 3001 killed
+     … +3 lines (ctrl+o to expand)
+  ⎿  (timeout 15s)
+
+● Bash(cd "C:\Users\JacobB\Documents\battleship2" && npm run dev 2>&1)
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(sleep 8 && cat
+      "C:\Users\JacobB\AppData\Local\Temp\claude\C--Users-JacobB-Documents-battl
+      eship2\db2a31a0-0a4e-42c6-9984-071e36ba1c8c\tasks\bswb8vvnh.output")
+  ⎿  > battleship@0.0.0 dev
+     > concurrently "vite" "node --watch server.js"
+     … +10 lines (ctrl+o to expand)
+  ⎿  (timeout 20s)
+
+● Both servers are up cleanly. Now let me display the summary via the MCP tool
+  as required:
+
+  Called fm-gui (ctrl+o to expand)
+
+● All three features are implemented and running. Here's what changed:
+
+  Multiple rooms — server.js now maintains a rooms Map. Connecting players land
+  on a room browser (new RoomLobby.jsx) where they can create a room (get a
+  4-char code) or join one from a live list. When the opponent disconnects, the
+  room stays open and the remaining player waits for a new opponent with the
+  same code.
+
+  Drag-only placement — PlacementModeScreen.jsx and LobbyScreen.jsx deleted.
+  selectedShip/handleSelectShip/handleCellClick removed from useBattleship.
+  ShipPanel is now drag-only. The mode-selection phase is gone.
+
+  Animations — four CSS keyframe animations in App.css:
+  - hitExplode / missSplash — play once when a shot marker first mounts (no
+  extra state needed)
+  - shipReveal — flashes in the sunk enemy ship on the offense board
+  (justSunkOffenseId state, clears after 1.5s)
+  - shipDestroyed — red-flash destruction on your own sunk ships on the defense
+  board (justSunkDefenseId, clears after 1.5s); afterwards the ship stays greyed
+   out via inline style
+
+✻ Crunched for 18m 43s
+
+※ recap: Added multiple rooms, removed click-to-place, and added hit/miss/ship-sunk animations. Everything compiled and both servers started clean — the game is ready to test in the browser at localhost:5173. (disable recaps in /config)

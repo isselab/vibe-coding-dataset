@@ -1,0 +1,73 @@
+Graphing Calculator
+	Graph Rendering                          [Stage 2 +]
+		Canvas-based 2D renderer
+		Grid with intelligent step sizing
+		X and Y axis rendering with labels
+		High-DPI rendering support
+		Discontinuity handling
+		Point rendering (single unified green set)          [CHANGED]
+		● Responsive resize via ResizeObserver              [NEW]
+			Canvas resolution synced to CSS display size
+			Click coordinate mapping recalibrated on resize
+		● Overflow constraint (100vh layout chain)          [NEW]
+	Math Engine                              [Stage 2 +]
+		mathjs expression evaluation
+		Operators: +, -, *, /, ^
+		Functions: sin, cos, tan, sqrt, log, abs
+		Constants: pi, e
+		● Variable scope injection at evaluation time       [NEW]
+	Function Management                      [Stage 2 +]
+		Multiple functions with color slots
+		Visibility toggle, add, remove
+		Real-time expression validation (variable-aware)    [ENHANCED]
+		Error display
+		Receive regression result ("→ Add to functions")
+	● Variables                                              [NEW]
+		Named variable definitions (not x)
+		Name validation (no reserved keywords)
+		mathjs expression values (e.g. sqrt(2), pi/3)
+		Sequential evaluation (later vars reference earlier)
+		Resolved value display (≈ N format)
+		Real-time validation feedback
+		Add / remove variables
+	View Range                               [Stage 2]
+		X min / X max inputs
+		Y min / Y max inputs
+		Reset view button
+	Syntax Reference                         [Stage 2]
+		Help section
+	● Placed Points (single global set)                      [NEW / REPLACES multi-dataset points]
+		Click-to-place on canvas (crosshair cursor)
+		Manual coordinate input (x/y fields + Add / Enter)
+		Point list display (chip style with coordinates)
+		Remove individual points
+		Clear all points
+	● Table Dataset (single global, canvas-invisible)        [NEW / REPLACES multi-dataset tables]
+		Editable x/y rows
+		Add / remove rows
+		Data used for regression only (not rendered)
+	Regression Engine                        [Stage 2 +]
+		● Source selection                                   [NEW]
+			Radio: "Points (N)"
+			Radio: "Table (N)"
+		Model selection (single shared dropdown)            [CHANGED]
+			Linear, Quadratic, Cubic
+			Exponential, Logarithmic, Power
+		Fit button with source-aware validation
+		R² display
+		Fitted equation display
+		Minimum-point message per source
+		Result invalidation on data change
+		Dashed regression curve on canvas (purple)
+		"→ Add to functions" transfer
+	Tab System                               [Stage 2]
+		Functions tab  (Functions → Variables → View Range → Help)
+		Data tab       (Points → Table → Regression)
+	UI / Styling                             [Stage 2 +]
+		Sidebar + canvas layout
+		Dark theme, monospace font
+		● Crosshair cursor on canvas in Data tab            [NEW]
+		● Chip-style point list                             [NEW]
+		● Radio button styling for regression source        [NEW]
+		● Section separators within tabs                    [NEW]
+		Color conventions: points = green, regression = purple

@@ -1,0 +1,40 @@
+.stats-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exercise-select {
+  flex: 1;
+  background: #1e1e2a;
+  border: 1px solid #2e2e3e;
+  border-radius: 8px;
+  color: #e8e8f0;
+  font-size: 14px;
+  padding: 8px 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  appearance: none;
+}
+
+.exercise-select:focus {
+  border-color: #6c63ff;
+}
+
+.date-range {
+  gap: 8px;
+}
+
+.date-range label {
+  font-size: 13px;
+  color: #888;
+  font-weight: 600;
+  white-space: nowrap;
+}

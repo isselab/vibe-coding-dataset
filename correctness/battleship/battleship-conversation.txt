@@ -1,0 +1,3204 @@
+╭─── Claude Code v2.1.119 ─────────────────────────────────────────────────────╮
+│                                              │ Tips for getting started      │
+│              Welcome back Jacob!             │ Run /init to create a CLAUDE… │
+│                                              │ ───────────────────────────── │
+│                    ▐▛███▜▌                   │ Recent activity               │
+│                   ▝▜█████▛▘                  │ No recent activity            │
+│                     ▘▘ ▝▝                    │                               │
+│                                              │                               │
+│   Sonnet 4.6 · Claude Enterprise · Centiro   │                               │
+│            ~\Documents\battleship            │                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ make a battle ship game in react. for now it should only be one player        
+  placing out boats on a grid, meaning finding and sinking ships is not yet a   
+  part of it. they should be able to be placed both using clicking, and drag    
+  and drop.                                                                     
+
+● Let me check the current project structure first.
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Empty directory — I'll scaffold a new React + Vite project and build the
+  placement UI.
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && npm create vite@latest . --
+      --template react 2>&1)
+  ⎿  npm warn exec The following package was not found and will be installe
+     d: create-vite@9.0.6
+     … +4 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && npm create vite@latest .
+      --template react -- --force 2>&1)
+  ⎿  npm warn "react" is being parsed as a normal command line argument.
+     npm warn Unknown cli config "--template". This will stop working in th
+     e next major version of npm.
+     … +5 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && npx create-vite@latest .
+      --template react --yes 2>&1 || echo "FAILED")
+  ⎿  └  Operation cancelled
+  ⎿  (timeout 1m)
+
+  Listed 1 directory (ctrl+o to expand)
+
+● The .claude folder is making Vite cancel. I'll create the project files
+  manually.
+
+● Write(package.json)
+  ⎿  Wrote 21 lines to package.json
+       1 {
+       2   "name": "battleship",
+       3   "private": true,
+       4   "version": "0.0.0",
+       5   "type": "module",
+       6   "scripts": {
+       7     "dev": "vite",
+       8     "build": "vite build",
+       9     "preview": "vite preview"
+      10   },
+     … +11 lines (ctrl+o to expand)
+
+● Write(vite.config.js)
+  ⎿  Wrote 6 lines to vite.config.js
+      1 import { defineConfig } from 'vite'
+      2 import react from '@vitejs/plugin-react'
+      3 
+      4 export default defineConfig({
+      5   plugins: [react()],
+      6 })
+
+● Write(index.html)
+  ⎿  Wrote 12 lines to index.html
+       2 <html lang="en">
+       3   <head>
+       4     <meta charset="UTF-8" />
+       5     <meta name="viewport" content="width=device-width, initial-s
+         cale=1.0" />
+       6     <title>Battleship</title>
+       7   </head>
+       8   <body>
+       9     <div id="root"></div>
+      10     <script type="module" src="/src/main.jsx"></script>
+     … +3 lines (ctrl+o to expand)
+
+● Write(src\main.jsx)
+  ⎿  Wrote 10 lines to src\main.jsx
+       1 import React from 'react'
+       2 import ReactDOM from 'react-dom/client'
+       3 import App from './App'
+       4 import './index.css'
+       5 
+       6 ReactDOM.createRoot(document.getElementById('root')).render(
+       7   <React.StrictMode>
+       8     <App />
+       9   </React.StrictMode>
+      10 )
+
+● Now I'll write the main game logic and components.
+
+● Write(src\constants.js)
+  ⎿  Wrote 9 lines to src\constants.js
+      1 export const GRID_SIZE = 10
+      2 
+      3 export const SHIPS = [
+      4   { id: 'carrier',    name: 'Carrier',    length: 5 },
+      5   { id: 'battleship', name: 'Battleship', length: 4 },
+      6   { id: 'cruiser',    name: 'Cruiser',    length: 3 },
+      7   { id: 'submarine',  name: 'Submarine',  length: 3 },
+      8   { id: 'destroyer',  name: 'Destroyer',  length: 2 },
+      9 ]
+
+● Write(src\gameLogic.js)
+  ⎿  Wrote 26 lines to src\gameLogic.js
+      1 import { GRID_SIZE } from './constants'
+      2 
+      3 export function cellsForPlacement(row, col, length, horizontal) {
+      4   const cells = []
+      5   for (let i = 0; i < length; i++) {
+      6     cells.push(horizontal ? { row, col: col + i } : { row: row + 
+        i, col })
+      7   }
+      8   return cells
+      9 }
+     … +18 lines (ctrl+o to expand)
+
+● Write(src\App.jsx)
+  ⎿  Wrote 132 lines to src\App.jsx
+       2 import { SHIPS } from './constants'om 'react'
+       3 import { cellsForPlacement, canPlace } from './gameLogic'
+       4 import Grid from './components/Grid'
+       5 import ShipList from './components/ShipList'
+       6 import './App.css'
+       7 
+       8 export default function App() {
+       9   const [placedShips, setPlacedShips] = useState([])
+      10   const [selectedShipId, setSelectedShipId] = useState(SHIPS[0].
+         id)
+     … +128 lines (ctrl+o to expand)
+
+● Write(src\components\Grid.jsx)
+  ⎿  Wrote 109 lines to src\components\Grid.jsx
+       1 import { useEffect, useCallback } from 'react'
+       2 import { GRID_SIZE } from '../constants'
+       3 import { cellsForPlacement, canPlace } from '../gameLogic'
+       4 
+       5 const LETTERS = 'ABCDEFGHIJ'
+       6 
+       7 function buildOccupiedMap(placedShips) {
+       8   const map = {}
+       9   for (const ship of placedShips) {
+      10     for (const cell of ship.cells) {
+     … +105 lines (ctrl+o to expand)
+
+● Write(src\components\ShipList.jsx)
+  ⎿  Wrote 29 lines to src\components\ShipList.jsx
+         pId, onSelect, onDragStart, onDragEnd }) {placedIds, selectedShi
+       2   return (
+       3     <div className="ship-list">
+       4       <h2>Fleet</h2>
+       5       {ships.map(ship => {
+       6         const placed = placedIds.has(ship.id)
+       7         const selected = selectedShipId === ship.id && !placed
+       8         return (
+       9           <div
+      10             key={ship.id}
+     … +21 lines (ctrl+o to expand)
+
+● Write(src\index.css)
+  ⎿  Wrote 8 lines to src\index.css
+      1 *, *::before, *::after { box-sizing: border-box; margin: 0; paddi
+        ng: 0; }
+      2 
+      3 body {
+      4   font-family: 'Segoe UI', system-ui, sans-serif;
+      5   background: #0a1628;
+      6   color: #e0eaf8;
+      7   min-height: 100vh;
+      8 }
+
+● Write(src\App.css)
+  ⎿  Wrote 233 lines to src\App.css
+       1 .app {
+       2   max-width: 900px;
+       3   margin: 0 auto;
+       4   padding: 24px 16px;
+       5 }
+       6 
+       7 h1 {
+       8   font-size: 1.6rem;
+       9   letter-spacing: 0.05em;
+      10   color: #7ec8e3;
+     … +223 lines (ctrl+o to expand)
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && npm install 2>&1)  ⎿  added 67 packages, and audited 68 packages in 16s
+
+     7 packages are looking for funding
+     … +8 lines (ctrl+o to expand)
+  ⎿  (timeout 2m)
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && npm run dev 2>&1 &)
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(sleep 3 && cat
+      C:/Users/JacobB/AppData/Local/Temp/claude/C--Users-JacobB-Documents-battle
+      ship/c4d213df-1ee9-472b-bbc1-c1868c81f363/tasks/bbmogk2je.output 2>&1)
+  ⎿  > battleship@0.0.0 dev
+     > vite
+     … +5 lines (ctrl+o to expand)
+
+● Background command "Start Vite dev server in background" completed (exit code 0)
+
+● Dev server is running at http://localhost:5173. Let me open it and verify the
+  UI works.
+
+● Bash(start http://localhost:5173)
+  ⎿  (No output)
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && npm run dev 2>&1)
+  ⎿  Running in the background (↓ to manage)
+
+● The app is running at http://localhost:5173. Here's what's been built:
+
+  Features:
+  - 10×10 grid with column (1–10) and row (A–J) labels
+  - 5 ships in the fleet panel: Carrier (5), Battleship (4), Cruiser (3),
+  Submarine (3), Destroyer (2)
+  - Click to place — select a ship from the sidebar, hover over the grid to see
+  a green/red preview, click to place
+  - Drag and drop — drag any unplaced ship from the sidebar onto the grid
+  - Rotate — click the Horizontal/Vertical button, or press R anywhere
+  - Remove placed ships — hover over an occupied cell and click the × that
+  appears (returns ship to the fleet)
+  - Reset button to clear all ships
+  - "All ships placed!" message when the fleet is fully deployed
+
+✻ Churned for 3m 3s
+
+❯ the numbers 1-10 are not properly aligned                                     
+
+  Read 1 file (ctrl+o to expand)
+
+● The column labels use .grid-label which is 28px wide, but cells are 40px. I
+  need separate sizing for column vs row labels.
+
+  Read 1 file (ctrl+o to expand)
+
+● The column labels inherit width: 28px from .grid-label but need to match the
+  cell width of 40px. I'll split into .row-label and .col-label classes.
+
+● Update(src\App.css)
+  ⎿  Added 10 lines, removed 2 lines
+      168  }
+      169  
+      170  .grid-label {
+      171 -  width: 28px;                                                
+      172 -  height: 40px;                                               
+      171    display: flex;
+      172    align-items: center;
+      173    justify-content: center;
+     ...
+      176    flex-shrink: 0;
+      177  }
+      178  
+      179 +.row-label {                                                  
+      180 +  width: 28px;                                                
+      181 +  height: 40px;                                               
+      182 +}                                                             
+      183 +                                                              
+      184 +.col-label {                                                  
+      185 +  width: 40px;                                                
+      186 +  height: 24px;                                               
+      187 +}                                                             
+      188 +                                                              
+      189  .cell {
+      190    width: 40px;
+      191    height: 40px;
+
+● Now update the Grid component to use the right classes:
+
+● Update(src\components\Grid.jsx)
+  ⎿  Added 1 line, removed 1 line
+      65        <div className="grid-col-labels">
+      66          <div className="grid-corner" />
+      67          {Array.from({ length: GRID_SIZE }, (_, i) => (
+      68 -          <div key={i} className="grid-label">{i + 1}</div>    
+      68 +          <div key={i} className="grid-label col-label">{i + 1}
+         +</div>                                                         
+      69          ))}
+      70        </div>
+      71  
+
+● The row labels already have className="grid-label row-label" — now the column
+  labels get col-label (40px wide) matching the cells, while row labels stay at
+  28px. The numbers should line up correctly now.
+
+❯ before you do anything, commit the current changes. then continue with the    
+  instructions below                                                            
+                                                                                
+  Now i want to add a couple of things:                                         
+  1. I want the game to be playable, and it should work over a connection. we   
+  only need one room for now                                                    
+  2. before starting play a player should get the option to select whether they 
+   want to use drag and drop, or clicking, to place their ships.                
+  3. the boats should have a proper design looking like the actual boats they   
+  represent.                                                                    
+
+● Let me commit first, then I'll plan the implementation.
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && git init && git add
+      package.json vite.config.js index.html src/ && git status)
+  ⎿  Initialized empty Git repository in C:/Users/JacobB/Documents/battlesh
+     ip/.git/
+     warning: in the working copy of 'index.html', LF will be replaced by C
+     … +23 lines (ctrl+o to expand)
+
+● Write(.gitignore)
+  ⎿  Wrote 3 lines to .gitignore
+      1 node_modules/
+      2 dist/
+      3 .claude/
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && git add .gitignore && git
+      commit -m "$(cat <<'EOF'
+      Initial battleship ship-placement UI…)
+  ⎿  warning: in the working copy of '.gitignore', LF will be replaced by C
+     RLF the next time Git touches it
+     [main (root-commit) 3503c96] Initial battleship ship-placement UI
+     … +13 lines (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ commit the latest changes (do this after every prompt in this project)        
+                                                                                
+  it also seemed like you got stuck thinking just now                           
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && git diff --stat)
+  ⎿  (No output)
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && git status)  ⎿  On branch main
+     Untracked files:
+       (use "git add <file>..." to include in what will be committed)
+     … +4 lines (ctrl+o to expand)
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && git show --stat HEAD)
+  ⎿  commit 3503c96f23c1caf50cb9026a5e1fa60651a74667
+     Author: Jacob Bengtsson <jacob.bengtsson@centiro.com>
+     Date:   Fri Apr 24 10:12:43 2026 +0200
+     … +19 lines (ctrl+o to expand)
+
+● The alignment fix was already staged when I committed, so it's included in the
+   initial commit — nothing new to commit. Also noted about the thinking delay,
+  I'll keep moving faster.
+
+  Now, ready to continue with the three features:
+  1. Multiplayer over a connection (WebSocket server, single room)
+  2. Placement mode selection (click vs drag-and-drop) before placing ships
+  3. Proper ship visuals (designs that look like actual vessels)
+
+  Shall I proceed with all three now?
+
+❯ yes go ahead                                                                  
+
+● Plan(Plan multiplayer battleship implementation)
+  ⎿  Done (14 tool uses · 24.2k tokens · 1m 54s)
+  (ctrl+o to expand)
+
+● Good plan. Now I'll implement everything in one focused pass.
+
+  Read 2 files (ctrl+o to expand)
+
+● Write(package.json)
+  ⎿  Added 6 lines, removed 2 lines
+       4    "version": "0.0.0",
+       5    "type": "module",
+       6    "scripts": {
+       7 -    "dev": "vite",                                             
+       7 +    "dev": "concurrently \"node server.js\" \"vite\"",         
+       8 +    "server": "node server.js",                                
+       9 +    "client": "vite",                                          
+      10      "build": "vite build",
+      11      "preview": "vite preview"
+      12    },
+      13    "dependencies": {
+      14      "react": "^18.3.1",
+      13 -    "react-dom": "^18.3.1"                                     
+      15 +    "react-dom": "^18.3.1",                                    
+      16 +    "ws": "^8.18.0"                                            
+      17    },
+      18    "devDependencies": {
+      19      "@types/react": "^18.3.1",
+      20      "@types/react-dom": "^18.3.1",
+      21      "@vitejs/plugin-react": "^4.3.1",
+      22 +    "concurrently": "^9.0.0",                                  
+      23      "vite": "^5.4.10"
+      24    }
+      25  }
+
+● Write(src\constants.js)
+  ⎿  Added 3 lines
+      1  export const GRID_SIZE = 10
+      2 +export const CELL_SIZE = 40                                     
+      3 +export const ROW_LABEL_WIDTH = 28                               
+      4 +export const COL_LABEL_HEIGHT = 24                              
+      5  
+      6  export const SHIPS = [
+      7    { id: 'carrier',    name: 'Carrier',    length: 5 },
+
+● Write(server.js)
+  ⎿  Wrote 154 lines to server.js
+       2 import { WebSocketServer } from 'ws'
+       3 const GRID_SIZE = 10
+       4 const SHIP_LENGTHS = { carrier: 5, battleship: 4, cruiser: 3, su
+         bmarine: 3, destroyer: 2 }
+       5 const SHIP_IDS = Object.keys(SHIP_LENGTHS)
+       6 
+       7 const wss = new WebSocketServer({ port: 3001 })
+       8 
+       9 function makeRoom() {
+      10   return {
+     … +159 lines (ctrl+o to expand)
+
+● Write(src\hooks\useWebSocket.js)
+  ⎿  Wrote 27 lines to src\hooks\useWebSocket.js
+       1 import { useEffect, useRef, useCallback, useState } from 'react'
+       2 
+       3 export function useWebSocket(url, onMessage) {
+       4   const wsRef = useRef(null)
+       5   const onMessageRef = useRef(onMessage)
+       6   onMessageRef.current = onMessage
+       7   const [connected, setConnected] = useState(false)
+       8 
+       9   useEffect(() => {
+      10     const ws = new WebSocket(url)
+     … +17 lines (ctrl+o to expand)
+
+● Now the ship SVG designs — top-down naval silhouettes:
+
+● Write(src\components\ShipSvg.jsx)
+  ⎿  Wrote 156 lines to src\components\ShipSvg.jsx
+      1 // Top-down naval vessel silhouettes. Bow points RIGHT, stern LEF
+        T.
+      2 // All designs share a viewBox of "0 0 {length*40} 40".
+      3 
+      4 const H = '#1a3a5e'   // hull base
+      5 const D = '#264d78'   // deck
+      6 const S = '#336690'   // superstructure
+      7 const T = '#3f7aa8'   // tower / upper deck
+      8 const A = '#6aafd4'   // accent / windows
+      9 const G = '#12283f'   // gun / dark detail
+     … +180 lines (ctrl+o to expand)
+
+● Write(src\components\ShipOverlay.jsx)
+  ⎿  Wrote 45 lines to src\components\ShipOverlay.jsx
+         /constants'LL_SIZE, ROW_LABEL_WIDTH, COL_LABEL_HEIGHT } from '..
+       2 import ShipSvg from './ShipSvg'
+       3 
+       4 export default function ShipOverlay({ ship, onClick }) {
+       5   const { id, cells, horizontal } = ship
+       6   const minRow = Math.min(...cells.map(c => c.row))
+       7   const minCol = Math.min(...cells.map(c => c.col))
+       8   const length = cells.length
+       9 
+      10   const top = COL_LABEL_HEIGHT + minRow * CELL_SIZE
+     … +36 lines (ctrl+o to expand)
+
+● Now the updated Grid component that supports both placement and battle modes:
+
+● Write(src\components\Grid.jsx)
+  ⎿  Added 51 lines, removed 36 lines
+       1  import { useEffect, useCallback } from 'react'
+       2  import { GRID_SIZE } from '../constants'
+       3  import { cellsForPlacement, canPlace } from '../gameLogic'
+       4 +import ShipOverlay from './ShipOverlay'                        
+       5  
+       6  const LETTERS = 'ABCDEFGHIJ'
+       7  
+       7 -function buildOccupiedMap(placedShips) {                       
+       8 +function buildOccupiedMap(ships) {                             
+       9    const map = {}
+       9 -  for (const ship of placedShips) {                            
+      10 +  for (const ship of ships) {                                  
+      11      for (const cell of ship.cells) {
+      12        map[`${cell.row},${cell.col}`] = ship.id
+      13      }
+     ...
+      15    return map
+      16  }
+      17  
+      18 +function buildShotMap(shots) {                                 
+      19 +  const map = {}                                               
+      20 +  for (const s of shots) map[`${s.row},${s.col}`] = s          
+      21 +  return map                                                   
+      22 +}                                                              
+      23 +                                                               
+      24  export default function Grid({
+      18 -  placedShips,                                                 
+      19 -  hoverCells,                                                  
+      20 -  hoverValid,                                                  
+      25 +  // Placement props                                           
+      26 +  placedShips = [],                                            
+      27 +  hoverCells = [],                                             
+      28 +  hoverValid = true,                                           
+      29    onCellClick,
+      30    onCellHover,
+      31    onMouseLeave,
+      24 -  onDrop,                                                      
+      32    onRemoveShip,
+      26 -  horizontal,                                                  
+      33 +  // For keyboard rotation listener                            
+      34    setHorizontal,
+      35    activeShip,
+      29 -  placedIds,                                                   
+      36 +  // Battle props                                              
+      37 +  shots = [],           // { row, col, hit } — markers to show 
+         +on grid                                                        
+      38 +  revealedShips = [],   // sunk enemy ships to show as overlays
+      39  }) {
+      40    const occupied = buildOccupiedMap(placedShips)
+      41 +  const revealed = buildOccupiedMap(revealedShips)             
+      42 +  const shotMap = buildShotMap(shots)                          
+      43    const hoverSet = new Set(hoverCells.map(c => `${c.row},${c.co
+          l}`))
+      44  
+      45    const handleKeyDown = useCallback((e) => {
+      35 -    if (e.key === 'r' || e.key === 'R') {                      
+      46 +    if ((e.key === 'r' || e.key === 'R') && setHorizontal) {   
+      47        setHorizontal(h => !h)
+      48      }
+      49    }, [setHorizontal])
+      50  
+      51    useEffect(() => {
+      52 +    if (!setHorizontal) return                                 
+      53      window.addEventListener('keydown', handleKeyDown)
+      54      return () => window.removeEventListener('keydown', handleKe
+          yDown)
+      43 -  }, [handleKeyDown])                                          
+      55 +  }, [handleKeyDown, setHorizontal])                           
+      56  
+      57    const handleDragOver = (e, row, col) => {
+      58      e.preventDefault()
+      59      if (!activeShip) return
+      48 -    const cells = cellsForPlacement(row, col, activeShip.length
+         -, horizontal)                                                  
+      49 -    onCellHover(row, col)                                      
+      50 -    e.dataTransfer.dropEffect = canPlace(cells, placedShips) ? 
+         -'move' : 'none'                                                
+      60 +    onCellHover?.(row, col)                                    
+      61 +    e.dataTransfer.dropEffect = 'move'                         
+      62    }
+      63  
+      53 -  const handleDrop = (e, row, col) => {                        
+      54 -    e.preventDefault()                                         
+      55 -    onDrop(row, col)                                           
+      56 -  }                                                            
+      57 -                                                               
+      58 -  const handlePlacedShipClick = (e, shipId) => {               
+      59 -    e.stopPropagation()                                        
+      60 -    onRemoveShip(shipId)                                       
+      61 -  }                                                            
+      62 -                                                               
+      64    return (
+      64 -    <div className="grid-wrapper" onMouseLeave={onMouseLeave}> 
+      65 +    <div className="grid-wrapper" onMouseLeave={onMouseLeave} s
+         +tyle={{ position: 'relative' }}>                               
+      66 +      {/* Column number labels */}                             
+      67        <div className="grid-col-labels">
+      68          <div className="grid-corner" />
+      69          {Array.from({ length: GRID_SIZE }, (_, i) => (
+     ...
+       71          ))}
+       72        </div>
+       73  
+       74 +      {/* Rows */}                                            
+       75        {Array.from({ length: GRID_SIZE }, (_, row) => (
+       76          <div key={row} className="grid-row">
+       77            <div className="grid-label row-label">{LETTERS[row]}
+           </div>
+       78            {Array.from({ length: GRID_SIZE }, (_, col) => {
+       79              const key = `${row},${col}`
+       80              const shipId = occupied[key]
+       81 +            const revealedId = revealed[key]                  
+       82 +            const shot = shotMap[key]                         
+       83              const isHover = hoverSet.has(key)
+       84 +                                                              
+       85              let cellClass = 'cell'
+       86              if (shipId) cellClass += ' occupied'
+       87 +            if (revealedId) cellClass += ' revealed'          
+       88              if (isHover) cellClass += hoverValid ? ' hover-val
+           id' : ' hover-invalid'
+       89 +            if (shot) cellClass += shot.hit ? ' shot-hit' : ' 
+          +shot-miss'                                                    
+       90  
+       91              return (
+       92                <div
+       93                  key={col}
+       94                  className={cellClass}
+       87 -                onClick={() => onCellClick(row, col)}         
+       88 -                onMouseEnter={() => onCellHover(row, col)}    
+       95 +                onClick={() => onCellClick?.(row, col)}       
+       96 +                onMouseEnter={() => onCellHover?.(row, col)}  
+       97                  onDragOver={(e) => handleDragOver(e, row, col)
+           }
+       90 -                onDrop={(e) => handleDrop(e, row, col)}       
+       91 -                title={shipId ? 'Click placed ship to remove' 
+          -: undefined}                                                  
+       98 +                onDrop={(e) => { e.preventDefault(); onCellCli
+          +ck?.(row, col) }}                                             
+       99                >
+       93 -                {shipId && (                                  
+       94 -                  <button                                     
+       95 -                    className="remove-ship-btn"               
+       96 -                    onClick={(e) => handlePlacedShipClick(e, s
+          -hipId)}                                                       
+       97 -                    title="Remove ship"                       
+       98 -                  >                                           
+       99 -                    ×                                         
+      100 -                  </button>                                   
+      100 +                {shot && (                                    
+      101 +                  <div className={`shot-marker ${shot.hit ? 'h
+          +it' : 'miss'}`} />                                            
+      102                  )}
+      103                </div>
+      104              )
+      105            })}
+      106          </div>
+      107        ))}
+      108 +                                                              
+      109 +      {/* Ship overlays — placed ships */}                    
+      110 +      {placedShips.map(ship => (                              
+      111 +        <ShipOverlay                                          
+      112 +          key={ship.id}                                       
+      113 +          ship={ship}                                         
+      114 +          onClick={onRemoveShip ? () => onRemoveShip(ship.id) 
+          +: undefined}                                                  
+      115 +        />                                                    
+      116 +      ))}                                                     
+      117 +                                                              
+      118 +      {/* Revealed sunk enemy ships */}                       
+      119 +      {revealedShips.map(ship => (                            
+      120 +        <ShipOverlay key={`revealed-${ship.id}`} ship={ship} /
+          +>                                                             
+      121 +      ))}                                                     
+      122      </div>
+      123    )
+      124  }
+
+● Now the screen components:
+
+● Bash(mkdir -p C:/Users/JacobB/Documents/battleship/src/screens)
+  ⎿  Done
+
+● Write(src\screens\WaitingScreen.jsx)
+  ⎿  Wrote 11 lines to src\screens\WaitingScreen.jsx
+       2   return (ault function WaitingScreen({ message }) {
+       3     <div className="fullscreen-center">
+       4       <div className="waiting-card">
+       5         <div className="sonar-ring" />
+       6         <h2>{message ?? 'Waiting for opponent…'}</h2>
+       7         <p className="waiting-sub">Share this page with your opp
+         onent to start</p>
+       8       </div>
+       9     </div>
+      10   )
+     … +2 lines (ctrl+o to expand)
+
+● Write(src\screens\ModeSelectScreen.jsx)
+  ⎿  Wrote 22 lines to src\screens\ModeSelectScreen.jsx
+       2   return (ault function ModeSelectScreen({ onSelect }) {
+       3     <div className="fullscreen-center">
+       4       <div className="mode-select-card">
+       5         <h1>Choose Placement Style</h1>
+       6         <p className="mode-sub">How would you like to place your
+       7         <div className="mode-options">
+       8           <button className="mode-btn" onClick={() => onSelect('
+         click')}>
+       9             <span className="mode-icon">🖱️</span>
+      10             <span className="mode-title">Click to Place</span>
+     … +17 lines (ctrl+o to expand)
+
+● Write(src\screens\PlacementScreen.jsx)
+  ⎿  Wrote 110 lines to src\screens\PlacementScreen.jsx
+       2 import { SHIPS } from '../constants'm 'react'
+       3 import { cellsForPlacement, canPlace } from '../gameLogic'
+       4 import Grid from '../components/Grid'
+       5 import ShipList from '../components/ShipList'
+       6 
+         orOpponent }) {function PlacementScreen({ mode, onDone, waitingF
+       8   const [placedShips, setPlacedShips] = useState([])
+       9   const [selectedShipId, setSelectedShipId] = useState(SHIPS[0].
+         id)
+      10   const [horizontal, setHorizontal] = useState(true)
+     … +116 lines (ctrl+o to expand)
+
+● Write(src\screens\BattleScreen.jsx)  ⎿  Wrote 78 lines to src\screens\BattleScreen.jsx
+       1 import { useState, useCallback } from 'react'
+       2 import Grid from '../components/Grid'
+       3 
+       4 export default function BattleScreen({
+       5   pid,
+       6   currentTurn,
+       7   myShips,
+       8   myReceivedShots,
+       9   myReceivedHits,
+      10   theirReceivedShots,
+     … +73 lines (ctrl+o to expand)
+
+● Write(src\screens\GameOverScreen.jsx)
+  ⎿  Wrote 15 lines to src\screens\GameOverScreen.jsx
+       2   const won = winner === pidOverScreen({ winner, pid }) {
+       3   return (
+       4     <div className="fullscreen-center">
+       5       <div className={`gameover-card ${won ? 'won' : 'lost'}`}>
+       6         <div className="gameover-icon">{won ? '🏆' : '💥'}</div>
+       8         <p>{won ? 'You sunk the entire enemy fleet.' : 'Your fle
+         et has been destroyed.'}</p>
+       9         <button className="ready-btn" onClick={() => window.loca
+         tion.reload()}>
+      10           Play Again
+     … +7 lines (ctrl+o to expand)
+
+● Now the new App.jsx as a thin phase router:
+
+● Write(src\App.jsx)
+  ⎿  Added 131 lines, removed 118 lines
+        1  import { useState, useCallback } from 'react'
+        2 -import { SHIPS } from './constants'                           
+        3 -import { cellsForPlacement, canPlace } from './gameLogic'     
+        4 -import Grid from './components/Grid'                          
+        5 -import ShipList from './components/ShipList'                  
+        2 +import { useWebSocket } from './hooks/useWebSocket'           
+        3 +import WaitingScreen from './screens/WaitingScreen'           
+        4 +import ModeSelectScreen from './screens/ModeSelectScreen'     
+        5 +import PlacementScreen from './screens/PlacementScreen'       
+        6 +import BattleScreen from './screens/BattleScreen'             
+        7 +import GameOverScreen from './screens/GameOverScreen'         
+        8  import './App.css'
+        9  
+       10 +const WS_URL = 'ws://localhost:3001'                          
+       11 +                                                              
+       12  export default function App() {
+        9 -  const [placedShips, setPlacedShips] = useState([])          
+       10 -  const [selectedShipId, setSelectedShipId] = useState(SHIPS[0
+          -].id)                                                         
+       11 -  const [horizontal, setHorizontal] = useState(true)          
+       12 -  const [dragShipId, setDragShipId] = useState(null)          
+       13 -  const [hoverCells, setHoverCells] = useState([])            
+       14 -  const [hoverValid, setHoverValid] = useState(true)          
+       13 +  const [phase, setPhase] = useState('connecting')            
+       14 +  const [pid, setPid] = useState(null)                        
+       15 +  const [placementMode, setPlacementMode] = useState(null)    
+       16 +  const [waitingForOpponent, setWaitingForOpponent] = useState
+          +(false)                                                       
+       17  
+       16 -  const placedIds = new Set(placedShips.map(s => s.id))       
+       17 -  const remainingShips = SHIPS.filter(s => !placedIds.has(s.id
+          -))                                                            
+       18 -  const activeShipId = dragShipId ?? selectedShipId           
+       19 -  const activeShip = SHIPS.find(s => s.id === activeShipId)   
+       18 +  // My placed ships (sent to server on ready)                
+       19 +  const [myShips, setMyShips] = useState([])                  
+       20  
+       21 -  const allPlaced = remainingShips.length === 0               
+       21 +  // Battle state                                             
+       22 +  const [currentTurn, setCurrentTurn] = useState(0)           
+       23 +  const [myReceivedShots, setMyReceivedShots] = useState([])  
+          + // hits on my grid                                           
+       24 +  const [theirReceivedShots, setTheirReceivedShots] = useState
+          +([]) // my attacks on them                                    
+       25 +  const [sunkEnemyShips, setSunkEnemyShips] = useState([])    
+          + // revealed enemy ships                                      
+       26 +  const [mySunkShips, setMySunkShips] = useState([])          
+       27  
+       23 -  const handleCellClick = useCallback((row, col) => {         
+       24 -    if (!activeShip || placedIds.has(activeShip.id)) return   
+       25 -    const cells = cellsForPlacement(row, col, activeShip.lengt
+          -h, horizontal)                                                
+       26 -    if (!canPlace(cells, placedShips)) return                 
+       27 -    const next = [...placedShips, { id: activeShip.id, cells }
+          -]                                                             
+       28 -    setPlacedShips(next)                                      
+       29 -    const nextShip = SHIPS.find(s => !next.some(p => p.id === 
+          -s.id))                                                        
+       30 -    if (nextShip) setSelectedShipId(nextShip.id)              
+       31 -    setHoverCells([])                                         
+       32 -  }, [activeShip, placedIds, horizontal, placedShips])        
+       28 +  const [winner, setWinner] = useState(null)                  
+       29 +  const [lastResult, setLastResult] = useState(null)          
+       30  
+       34 -  const handleCellHover = useCallback((row, col) => {         
+       35 -    if (!activeShip) return                                   
+       36 -    const cells = cellsForPlacement(row, col, activeShip.lengt
+          -h, horizontal)                                                
+       37 -    setHoverCells(cells)                                      
+       38 -    setHoverValid(canPlace(cells, placedShips))               
+       39 -  }, [activeShip, horizontal, placedShips])                   
+       31 +  const handleMessage = useCallback((msg) => {                
+       32 +    switch (msg.type) {                                       
+       33 +      case 'welcome':                                         
+       34 +        setPid(msg.pid)                                       
+       35 +        setPhase('waiting')                                   
+       36 +        break                                                 
+       37 +      case 'select_mode':                                     
+       38 +        setPhase('mode_select')                               
+       39 +        break                                                 
+       40 +      case 'placement_start':                                 
+       41 +        setPhase('placement')                                 
+       42 +        break                                                 
+       43 +      case 'waiting_for_opponent':                            
+       44 +        setWaitingForOpponent(true)                           
+       45 +        break                                                 
+       46 +      case 'battle_start':                                    
+       47 +        setCurrentTurn(msg.yourTurn ? pid : 1 - pid)          
+       48 +        setPhase('battle')                                    
+       49 +        setWaitingForOpponent(false)                          
+       50 +        break                                                 
+       51 +      case 'attack_result': {                                 
+       52 +        const { row, col, hit, sunkShip, attackerPid, nextTurn
+          + } = msg                                                      
+       53 +        setCurrentTurn(nextTurn)                              
+       54 +        setLastResult({ hit, sunk: sunkShip?.id ?? null, attac
+          +kerPid })                                                     
+       55 +        if (attackerPid === pid) {                            
+       56 +          // My attack landed on them                         
+       57 +          setTheirReceivedShots(prev => [...prev, { row, col, 
+          +hit }])                                                       
+       58 +          if (sunkShip) setSunkEnemyShips(prev => [...prev, su
+          +nkShip])                                                      
+       59 +        } else {                                              
+       60 +          // Their attack landed on me                        
+       61 +          setMyReceivedShots(prev => [...prev, { row, col, hit
+          + }])                                                          
+       62 +          if (sunkShip) setMySunkShips(prev => [...prev, sunkS
+          +hip])                                                         
+       63 +        }                                                     
+       64 +        break                                                 
+       65 +      }                                                       
+       66 +      case 'game_over': {                                     
+       67 +        const { winner: w, row, col, hit, sunkShip, attackerPi
+          +d } = msg                                                     
+       68 +        setWinner(w)                                          
+       69 +        // Record the final shot                              
+       70 +        if (w === pid) {                                      
+       71 +          setTheirReceivedShots(prev => [...prev, { row, col, 
+          +hit }])                                                       
+       72 +          if (sunkShip) setSunkEnemyShips(prev => [...prev, su
+          +nkShip])                                                      
+       73 +        } else {                                              
+       74 +          setMyReceivedShots(prev => [...prev, { row, col, hit
+          + }])                                                          
+       75 +        }                                                     
+       76 +        setPhase('gameover')                                  
+       77 +        break                                                 
+       78 +      }                                                       
+       79 +      case 'opponent_disconnected':                           
+       80 +        setPhase('waiting')                                   
+       81 +        setWaitingForOpponent(false)                          
+       82 +        setMyShips([])                                        
+       83 +        setMyReceivedShots([])                                
+       84 +        setTheirReceivedShots([])                             
+       85 +        setSunkEnemyShips([])                                 
+       86 +        setMySunkShips([])                                    
+       87 +        break                                                 
+       88 +    }                                                         
+       89 +  }, [pid])                                                   
+       90  
+       41 -  const handleMouseLeave = useCallback(() => {                
+       42 -    setHoverCells([])                                         
+       43 -  }, [])                                                      
+       91 +  const { send, connected } = useWebSocket(WS_URL, handleMessa
+          +ge)                                                           
+       92  
+       45 -  const handleDragStart = useCallback((shipId) => {           
+       46 -    setDragShipId(shipId)                                     
+       47 -    setSelectedShipId(shipId)                                 
+       48 -  }, [])                                                      
+       93 +  const handleModeSelect = useCallback((mode) => {            
+       94 +    setPlacementMode(mode)                                    
+       95 +    send({ type: 'mode_selected', mode })                     
+       96 +  }, [send])                                                  
+       97  
+       50 -  const handleDrop = useCallback((row, col) => {              
+       51 -    const ship = SHIPS.find(s => s.id === (dragShipId ?? selec
+          -tedShipId))                                                   
+       52 -    if (!ship) return                                         
+       53 -    const cells = cellsForPlacement(row, col, ship.length, hor
+          -izontal)                                                      
+       54 -    if (!canPlace(cells, placedShips)) return                 
+       55 -    const next = [...placedShips, { id: ship.id, cells }]     
+       56 -    setPlacedShips(next)                                      
+       57 -    const nextShip = SHIPS.find(s => !next.some(p => p.id === 
+          -s.id))                                                        
+       58 -    if (nextShip) setSelectedShipId(nextShip.id)              
+       59 -    setDragShipId(null)                                       
+       60 -    setHoverCells([])                                         
+       61 -  }, [dragShipId, selectedShipId, horizontal, placedShips])   
+       98 +  const handlePlacementDone = useCallback((ships) => {        
+       99 +    setMyShips(ships)                                         
+      100 +    send({ type: 'placement_done', ships })                   
+      101 +    setWaitingForOpponent(true)                               
+      102 +  }, [send])                                                  
+      103  
+       63 -  const handleDragEnd = useCallback(() => {                   
+       64 -    setDragShipId(null)                                       
+       65 -    setHoverCells([])                                         
+       66 -  }, [])                                                      
+      104 +  const handleAttack = useCallback((row, col) => {            
+      105 +    send({ type: 'attack', row, col })                        
+      106 +  }, [send])                                                  
+      107  
+       68 -  const handleRemoveShip = useCallback((shipId) => {          
+       69 -    setPlacedShips(prev => prev.filter(s => s.id !== shipId)) 
+       70 -    setSelectedShipId(shipId)                                 
+       71 -  }, [])                                                      
+       72 -                                                              
+       73 -  const handleReset = useCallback(() => {                     
+       74 -    setPlacedShips([])                                        
+       75 -    setSelectedShipId(SHIPS[0].id)                            
+       76 -    setHoverCells([])                                         
+       77 -  }, [])                                                      
+       78 -                                                              
+       79 -  return (                                                    
+       80 -    <div className="app">                                     
+       81 -      <h1>Battleship — Place Your Fleet</h1>                  
+       82 -                                                              
+       83 -      <div className="layout">                                
+       84 -        <div className="sidebar">                             
+       85 -          <ShipList                                           
+       86 -            ships={SHIPS}                                     
+       87 -            placedIds={placedIds}                             
+       88 -            selectedShipId={selectedShipId}                   
+       89 -            onSelect={setSelectedShipId}                      
+       90 -            onDragStart={handleDragStart}                     
+       91 -            onDragEnd={handleDragEnd}                         
+       92 -          />                                                  
+       93 -                                                              
+       94 -          <div className="controls">                          
+       95 -            <button                                           
+       96 -              className={`orientation-btn ${horizontal ? 'acti
+          -ve' : ''}`}                                                   
+       97 -              onClick={() => setHorizontal(h => !h)}          
+       98 -            >                                                 
+       99 -              {horizontal ? 'Horizontal' : 'Vertical'}        
+      100 -            </button>                                         
+      101 -            <span className="orientation-hint">Press R to rota
+          -te</span>                                                     
+      102 -          </div>                                              
+      103 -                                                              
+      104 -          {allPlaced && (                                     
+      105 -            <div className="all-placed">                      
+      106 -              All ships placed!                               
+      107 -            </div>                                            
+      108 -          )}                                                  
+      109 -                                                              
+      110 -          <button className="reset-btn" onClick={handleReset}>
+      111 -            Reset                                             
+      112 -          </button>                                           
+      113 -        </div>                                                
+      114 -                                                              
+      115 -        <Grid                                                 
+      116 -          placedShips={placedShips}                           
+      117 -          hoverCells={hoverCells}                             
+      118 -          hoverValid={hoverValid}                             
+      119 -          onCellClick={handleCellClick}                       
+      120 -          onCellHover={handleCellHover}                       
+      121 -          onMouseLeave={handleMouseLeave}                     
+      122 -          onDrop={handleDrop}                                 
+      123 -          onRemoveShip={handleRemoveShip}                     
+      124 -          horizontal={horizontal}                             
+      125 -          setHorizontal={setHorizontal}                       
+      126 -          activeShip={activeShip}                             
+      127 -          placedIds={placedIds}                               
+      128 -        />                                                    
+      129 -      </div>                                                  
+      130 -    </div>                                                    
+      131 -  )                                                           
+      108 +  if (phase === 'connecting' || (phase === 'waiting' && !conne
+          +cted)) {                                                      
+      109 +    return <WaitingScreen message="Connecting to server…" />  
+      110 +  }                                                           
+      111 +  if (phase === 'waiting') {                                  
+      112 +    return <WaitingScreen />                                  
+      113 +  }                                                           
+      114 +  if (phase === 'mode_select') {                              
+      115 +    return <ModeSelectScreen onSelect={handleModeSelect} />   
+      116 +  }                                                           
+      117 +  if (phase === 'placement') {                                
+      118 +    return (                                                  
+      119 +      <PlacementScreen                                        
+      120 +        mode={placementMode}                                  
+      121 +        onDone={handlePlacementDone}                          
+      122 +        waitingForOpponent={waitingForOpponent}               
+      123 +      />                                                      
+      124 +    )                                                         
+      125 +  }                                                           
+      126 +  if (phase === 'battle') {                                   
+      127 +    return (                                                  
+      128 +      <BattleScreen                                           
+      129 +        pid={pid}                                             
+      130 +        currentTurn={currentTurn}                             
+      131 +        myShips={myShips}                                     
+      132 +        myReceivedShots={myReceivedShots}                     
+      133 +        theirReceivedShots={theirReceivedShots}               
+      134 +        sunkEnemyShips={sunkEnemyShips}                       
+      135 +        mySunkShips={mySunkShips}                             
+      136 +        onAttack={handleAttack}                               
+      137 +        lastResult={lastResult}                               
+      138 +      />                                                      
+      139 +    )                                                         
+      140 +  }                                                           
+      141 +  if (phase === 'gameover') {                                 
+      142 +    return <GameOverScreen winner={winner} pid={pid} />       
+      143 +  }                                                           
+      144 +  return null                                                 
+      145  }
+
+● Now the ShipList needs to handle the mode-dependent behavior:
+
+● Write(src\components\ShipList.jsx)
+  ⎿  Added 5 lines, removed 4 lines
+       1 -export default function ShipList({ ships, placedIds, selectedSh
+         -ipId, onSelect, onDragStart, onDragEnd }) {                    
+       1 +export default function ShipList({ ships, placedIds, selectedSh
+         +ipId, mode, onSelect, onDragStart, onDragEnd }) {              
+       2    return (
+       3      <div className="ship-list">
+       4        <h2>Fleet</h2>
+       5        {ships.map(ship => {
+       6          const placed = placedIds.has(ship.id)
+       7          const selected = selectedShipId === ship.id && !placed
+       8 +        const draggable = mode === 'drag' && !placed           
+       9          return (
+      10            <div
+      11              key={ship.id}
+      12              className={`ship-item ${placed ? 'placed' : ''} ${s
+          elected ? 'selected' : ''}`}
+      12 -            draggable={!placed}                                
+      13 -            onClick={() => !placed && onSelect(ship.id)}       
+      14 -            onDragStart={() => !placed && onDragStart(ship.id)}
+      13 +            draggable={draggable}                              
+      14 +            onClick={() => !placed && onSelect?.(ship.id)}     
+      15 +            onDragStart={() => draggable && onDragStart?.(ship.
+         +id)}                                                           
+      16              onDragEnd={onDragEnd}
+      17            >
+      18              <span className="ship-name">{ship.name}</span>
+
+● Now the CSS — replacing App.css with all new + existing styles:
+
+● Write(src\App.css)
+  ⎿  Added 228 lines, removed 120 lines
+      1 +/* ── Shared ─────────────────────────────────────── */         
+      2  .app {
+      2 -  max-width: 900px;                                             
+      3 +  max-width: 960px;                                             
+      4    margin: 0 auto;
+      5    padding: 24px 16px;
+      6  }
+     ...
+       13    text-align: center;
+       14  }
+       15  
+       15 -/* ── Layout ──────────────────────────────────────── */      
+       16 +.fullscreen-center {                                          
+       17 +  min-height: 100vh;                                          
+       18 +  display: flex;                                              
+       19 +  align-items: center;                                        
+       20 +  justify-content: center;                                    
+       21 +  padding: 24px;                                              
+       22 +}                                                             
+       23 +                                                              
+       24 +/* ── Waiting screen ──────────────────────────────── */      
+       25 +.waiting-card {                                               
+       26 +  text-align: center;                                         
+       27 +  padding: 48px 64px;                                         
+       28 +  background: #0d2040;                                        
+       29 +  border-radius: 16px;                                        
+       30 +  border: 1px solid #1e3a5f;                                  
+       31 +  position: relative;                                         
+       32 +}                                                             
+       33 +                                                              
+       34 +.waiting-card h2 {                                            
+       35 +  font-size: 1.4rem;                                          
+       36 +  color: #7ec8e3;                                             
+       37 +  margin-bottom: 12px;                                        
+       38 +}                                                             
+       39 +                                                              
+       40 +.waiting-sub {                                                
+       41 +  color: #5a7a9a;                                             
+       42 +  font-size: 0.9rem;                                          
+       43 +}                                                             
+       44 +                                                              
+       45 +.sonar-ring {                                                 
+       46 +  width: 80px;                                                
+       47 +  height: 80px;                                               
+       48 +  border-radius: 50%;                                         
+       49 +  border: 3px solid #4a90c4;                                  
+       50 +  margin: 0 auto 24px;                                        
+       51 +  animation: sonar 1.8s ease-out infinite;                    
+       52 +}                                                             
+       53 +                                                              
+       54 +@keyframes sonar {                                            
+       55 +  0%   { transform: scale(0.5); opacity: 1; }                 
+       56 +  100% { transform: scale(1.5); opacity: 0; }                 
+       57 +}                                                             
+       58 +                                                              
+       59 +/* ── Mode select ─────────────────────────────────── */      
+       60 +.mode-select-card {                                           
+       61 +  text-align: center;                                         
+       62 +  padding: 48px;                                              
+       63 +  background: #0d2040;                                        
+       64 +  border-radius: 16px;                                        
+       65 +  border: 1px solid #1e3a5f;                                  
+       66 +  max-width: 520px;                                           
+       67 +  width: 100%;                                                
+       68 +}                                                             
+       69 +                                                              
+       70 +.mode-select-card h1 {                                        
+       71 +  margin-bottom: 8px;                                         
+       72 +}                                                             
+       73 +                                                              
+       74 +.mode-sub {                                                   
+       75 +  color: #5a7a9a;                                             
+       76 +  font-size: 0.9rem;                                          
+       77 +  margin-bottom: 32px;                                        
+       78 +}                                                             
+       79 +                                                              
+       80 +.mode-options {                                               
+       81 +  display: flex;                                              
+       82 +  gap: 20px;                                                  
+       83 +  justify-content: center;                                    
+       84 +  flex-wrap: wrap;                                            
+       85 +}                                                             
+       86 +                                                              
+       87 +.mode-btn {                                                   
+       88 +  flex: 1;                                                    
+       89 +  min-width: 180px;                                           
+       90 +  display: flex;                                              
+       91 +  flex-direction: column;                                     
+       92 +  align-items: center;                                        
+       93 +  gap: 8px;                                                   
+       94 +  padding: 28px 20px;                                         
+       95 +  border-radius: 12px;                                        
+       96 +  border: 2px solid #2a4d72;                                  
+       97 +  background: #13243d;                                        
+       98 +  color: #c8dff0;                                             
+       99 +  cursor: pointer;                                            
+      100 +  transition: border-color 0.15s, background 0.15s, transform 
+          +0.1s;                                                         
+      101 +}                                                             
+      102 +                                                              
+      103 +.mode-btn:hover {                                             
+      104 +  border-color: #7ec8e3;                                      
+      105 +  background: rgba(126, 200, 227, 0.08);                      
+      106 +  transform: translateY(-2px);                                
+      107 +}                                                             
+      108 +                                                              
+      109 +.mode-icon   { font-size: 2.2rem; }                           
+      110 +.mode-title  { font-size: 1rem; font-weight: 700; color: #7ec8
+          +e3; }                                                         
+      111 +.mode-desc   { font-size: 0.78rem; color: #5a7a9a; text-align:
+          + center; line-height: 1.4; }                                  
+      112 +                                                              
+      113 +/* ── Placement screen ────────────────────────────── */      
+      114  .layout {
+      115    display: flex;
+      116    gap: 32px;
+     ...
+      118    flex-wrap: wrap;
+      119  }
+      120  
+       23 -/* ── Sidebar ─────────────────────────────────────── */      
+      121  .sidebar {
+      122    display: flex;
+      123    flex-direction: column;
+     ...
+      125    min-width: 180px;
+      126  }
+      127  
+      128 +.placement-banner {                                           
+      129 +  text-align: center;                                         
+      130 +  padding: 10px;                                              
+      131 +  background: rgba(74, 144, 196, 0.15);                       
+      132 +  border: 1px solid #4a90c4;                                  
+      133 +  border-radius: 8px;                                         
+      134 +  color: #7ec8e3;                                             
+      135 +  font-size: 0.85rem;                                         
+      136 +  font-weight: 600;                                           
+      137 +  margin-bottom: 8px;                                         
+      138 +}                                                             
+      139 +                                                              
+      140  /* ── Ship list ───────────────────────────────────── */
+      141  .ship-list h2 {
+      142    font-size: 0.85rem;
+     ...
+      158    user-select: none;
+      159  }
+      160  
+       52 -.ship-item:not(.placed):hover {                               
+       53 -  border-color: #4a90c4;                                      
+       54 -  background: rgba(74, 144, 196, 0.1);                        
+       55 -}                                                             
+      161 +.ship-item:not(.placed):hover { border-color: #4a90c4; backgro
+          +und: rgba(74,144,196,0.1); }                                  
+      162 +.ship-item.selected { border-color: #7ec8e3; background: rgba(
+          +126,200,227,0.12); }                                          
+      163 +.ship-item.placed   { opacity: 0.45; cursor: default; }       
+      164  
+       57 -.ship-item.selected {                                         
+       58 -  border-color: #7ec8e3;                                      
+       59 -  background: rgba(126, 200, 227, 0.12);                      
+       60 -}                                                             
+      165 +.ship-name    { font-size: 0.82rem; font-weight: 600; color: #
+          +c8dff0; }                                                     
+      166 +.ship-blocks  { display: flex; gap: 2px; }                    
+      167 +.ship-block   { width: 14px; height: 14px; border-radius: 2px;
+          + background: #4a90c4; border: 1px solid #7ec8e3; }            
+      168 +.placed-badge { font-size: 0.7rem; color: #5db87a; font-weight
+          +: 600; }                                                      
+      169  
+       62 -.ship-item.placed {                                           
+       63 -  opacity: 0.45;                                              
+       64 -  cursor: default;                                            
+       65 -}                                                             
+       66 -                                                              
+       67 -.ship-name {                                                  
+       68 -  font-size: 0.82rem;                                         
+       69 -  font-weight: 600;                                           
+       70 -  color: #c8dff0;                                             
+       71 -}                                                             
+       72 -                                                              
+       73 -.ship-blocks {                                                
+       74 -  display: flex;                                              
+       75 -  gap: 2px;                                                   
+       76 -}                                                             
+       77 -                                                              
+       78 -.ship-block {                                                 
+       79 -  width: 14px;                                                
+       80 -  height: 14px;                                               
+       81 -  border-radius: 2px;                                         
+       82 -  background: #4a90c4;                                        
+       83 -  border: 1px solid #7ec8e3;                                  
+       84 -}                                                             
+       85 -                                                              
+       86 -.placed-badge {                                               
+       87 -  font-size: 0.7rem;                                          
+       88 -  color: #5db87a;                                             
+       89 -  font-weight: 600;                                           
+       90 -}                                                             
+       91 -                                                              
+      170  /* ── Controls ────────────────────────────────────── */
+       93 -.controls {                                                   
+       94 -  display: flex;                                              
+       95 -  flex-direction: column;                                     
+       96 -  gap: 6px;                                                   
+       97 -}                                                             
+      171 +.controls { display: flex; flex-direction: column; gap: 6px; }
+      172  
+      173  .orientation-btn {
+      174    padding: 8px 14px;
+     ...
+      182    letter-spacing: 0.05em;
+      183    transition: background 0.15s;
+      184  }
+      185 +.orientation-btn:hover, .orientation-btn.active { background: 
+          +rgba(74,144,196,0.2); }                                       
+      186 +.orientation-hint { font-size: 0.72rem; color: #5a7a9a; }     
+      187  
+      112 -.orientation-btn:hover, .orientation-btn.active {             
+      113 -  background: rgba(74, 144, 196, 0.2);                        
+      114 -}                                                             
+      115 -                                                              
+      116 -.orientation-hint {                                           
+      117 -  font-size: 0.72rem;                                         
+      118 -  color: #5a7a9a;                                             
+      119 -}                                                             
+      120 -                                                              
+      121 -.all-placed {                                                 
+      122 -  padding: 10px;                                              
+      123 -  border-radius: 6px;                                         
+      124 -  background: rgba(93, 184, 122, 0.15);                       
+      125 -  border: 1px solid #5db87a;                                  
+      188 +.ready-btn {                                                  
+      189 +  padding: 10px 18px;                                         
+      190 +  border-radius: 8px;                                         
+      191 +  border: 2px solid #5db87a;                                  
+      192 +  background: rgba(93,184,122,0.12);                          
+      193    color: #5db87a;
+      127 -  font-size: 0.85rem;                                         
+      128 -  font-weight: 600;                                           
+      129 -  text-align: center;                                         
+      194 +  font-size: 0.95rem;                                         
+      195 +  font-weight: 700;                                           
+      196 +  cursor: pointer;                                            
+      197 +  transition: background 0.15s, transform 0.1s;               
+      198  }
+      199 +.ready-btn:hover { background: rgba(93,184,122,0.22); transfor
+          +m: translateY(-1px); }                                        
+      200  
+      201  .reset-btn {
+      202    padding: 8px 14px;
+     ...
+      209    cursor: pointer;
+      210    transition: background 0.15s;
+      211  }
+      212 +.reset-btn:hover { background: rgba(196,74,74,0.15); }        
+      213  
+      144 -.reset-btn:hover {                                            
+      145 -  background: rgba(196, 74, 74, 0.15);                        
+      146 -}                                                             
+      147 -                                                              
+      214  /* ── Grid ────────────────────────────────────────── */
+      215  .grid-wrapper {
+      216    display: flex;
+      217    flex-direction: column;
+      218 +  position: relative;                                         
+      219  }
+      220  
+      154 -.grid-col-labels {                                            
+      155 -  display: flex;                                              
+      156 -  margin-bottom: 2px;                                         
+      157 -}                                                             
+      221 +.grid-col-labels { display: flex; margin-bottom: 2px; }       
+      222  
+      159 -.grid-corner {                                                
+      160 -  width: 28px;                                                
+      161 -  height: 24px;                                               
+      162 -  flex-shrink: 0;                                             
+      163 -}                                                             
+      223 +.grid-corner { width: 28px; height: 24px; flex-shrink: 0; }   
+      224  
+      165 -.grid-row {                                                   
+      166 -  display: flex;                                              
+      167 -  align-items: center;                                        
+      168 -}                                                             
+      225 +.grid-row { display: flex; align-items: center; }             
+      226  
+      227  .grid-label {
+      228    display: flex;
+     ...
+      232    color: #5a7a9a;
+      233    flex-shrink: 0;
+      234  }
+      235 +.row-label { width: 28px; height: 40px; }                     
+      236 +.col-label { width: 40px; height: 24px; }                     
+      237  
+      179 -.row-label {                                                  
+      180 -  width: 28px;                                                
+      181 -  height: 40px;                                               
+      182 -}                                                             
+      183 -                                                              
+      184 -.col-label {                                                  
+      185 -  width: 40px;                                                
+      186 -  height: 24px;                                               
+      187 -}                                                             
+      188 -                                                              
+      238  .cell {
+      239    width: 40px;
+      240    height: 40px;
+     ...
+      245    transition: background 0.1s;
+      246    flex-shrink: 0;
+      247  }
+      248 +.cell:hover:not(.occupied):not(.shot-hit):not(.shot-miss) { ba
+          +ckground: #142d52; }                                          
+      249 +.cell.occupied  { background: transparent; border-color: #2a4a
+          +6a; }                                                         
+      250 +.cell.revealed  { background: transparent; border-color: #c44a
+          +4a; }                                                         
+      251 +.cell.hover-valid   { background: rgba(93,184,122,0.25); borde
+          +r-color: #5db87a; }                                           
+      252 +.cell.hover-invalid { background: rgba(196,74,74,0.25); border
+          +-color: #c44a4a; }                                            
+      253 +.cell.shot-hit  { background: rgba(196,74,74,0.2); }          
+      254 +.cell.shot-miss { background: rgba(90,130,160,0.15); }        
+      255  
+      200 -.cell:hover:not(.occupied) {                                  
+      201 -  background: #142d52;                                        
+      256 +/* Shot markers */                                            
+      257 +.shot-marker {                                                
+      258 +  position: absolute;                                         
+      259 +  inset: 0;                                                   
+      260 +  display: flex;                                              
+      261 +  align-items: center;                                        
+      262 +  justify-content: center;                                    
+      263 +  pointer-events: none;                                       
+      264  }
+      203 -                                                              
+      204 -.cell.occupied {                                              
+      205 -  background: #2a5a8a;                                        
+      206 -  border-color: #4a90c4;                                      
+      207 -  cursor: pointer;                                            
+      265 +.shot-marker::after {                                         
+      266 +  content: '';                                                
+      267 +  display: block;                                             
+      268 +  border-radius: 50%;                                         
+      269  }
+      270 +.shot-marker.hit::after {                                     
+      271 +  width: 22px; height: 22px;                                  
+      272 +  background: #e05050;                                        
+      273 +  box-shadow: 0 0 8px #e05050aa;                              
+      274 +}                                                             
+      275 +.shot-marker.miss::after {                                    
+      276 +  width: 14px; height: 14px;                                  
+      277 +  background: #4a7090;                                        
+      278 +  border: 2px solid #6a90b0;                                  
+      279 +}                                                             
+      280  
+      210 -.cell.hover-valid {                                           
+      211 -  background: rgba(93, 184, 122, 0.35);                       
+      212 -  border-color: #5db87a;                                      
+      281 +/* ── Battle screen ───────────────────────────────── */      
+      282 +.battle-screen {                                              
+      283 +  max-width: 1050px;                                          
+      284 +  margin: 0 auto;                                             
+      285 +  padding: 16px 16px 32px;                                    
+      286  }
+      287  
+      215 -.cell.hover-invalid {                                         
+      216 -  background: rgba(196, 74, 74, 0.35);                        
+      217 -  border-color: #c44a4a;                                      
+      288 +.turn-banner {                                                
+      289 +  text-align: center;                                         
+      290 +  padding: 12px 24px;                                         
+      291 +  border-radius: 10px;                                        
+      292 +  font-size: 1rem;                                            
+      293 +  font-weight: 700;                                           
+      294 +  margin-bottom: 24px;                                        
+      295 +  letter-spacing: 0.04em;                                     
+      296 +  transition: background 0.3s;                                
+      297  }
+      298 +.turn-banner.my-turn {                                        
+      299 +  background: rgba(93,184,122,0.15);                          
+      300 +  border: 1px solid #5db87a;                                  
+      301 +  color: #5db87a;                                             
+      302 +}                                                             
+      303 +.turn-banner.their-turn {                                     
+      304 +  background: rgba(74,144,196,0.1);                           
+      305 +  border: 1px solid #4a90c4;                                  
+      306 +  color: #7ec8e3;                                             
+      307 +}                                                             
+      308 +.last-result { margin-left: 12px; font-weight: 400; }         
+      309  
+      220 -/* Remove button appears on hover over placed ships */        
+      221 -.remove-ship-btn {                                            
+      222 -  position: absolute;                                         
+      223 -  inset: 0;                                                   
+      224 -  width: 100%;                                                
+      225 -  height: 100%;                                               
+      226 -  background: transparent;                                    
+      227 -  border: none;                                               
+      228 -  color: transparent;                                         
+      229 -  font-size: 1.1rem;                                          
+      230 -  cursor: pointer;                                            
+      310 +.battle-layout {                                              
+      311    display: flex;
+      232 -  align-items: center;                                        
+      312 +  gap: 24px;                                                  
+      313 +  align-items: flex-start;                                    
+      314    justify-content: center;
+      234 -  border-radius: 0;                                           
+      235 -  transition: background 0.15s, color 0.15s;                  
+      315 +  flex-wrap: wrap;                                            
+      316  }
+      317  
+      238 -.cell.occupied:hover .remove-ship-btn {                       
+      239 -  background: rgba(196, 74, 74, 0.55);                        
+      240 -  color: #fff;                                                
+      318 +.battle-half { display: flex; flex-direction: column; gap: 8px
+          +; }                                                           
+      319 +                                                              
+      320 +.grid-title {                                                 
+      321 +  font-size: 0.8rem;                                          
+      322 +  letter-spacing: 0.08em;                                     
+      323 +  text-transform: uppercase;                                  
+      324 +  color: #5a7a9a;                                             
+      325 +  text-align: center;                                         
+      326  }
+      327 +.grid-title.active-grid { color: #5db87a; }                   
+      328 +                                                              
+      329 +.battle-divider {                                             
+      330 +  width: 1px;                                                 
+      331 +  background: #1e3a5f;                                        
+      332 +  align-self: stretch;                                        
+      333 +  margin: 0 4px;                                              
+      334 +}                                                             
+      335 +                                                              
+      336 +/* ── Game over screen ────────────────────────────── */      
+      337 +.gameover-card {                                              
+      338 +  text-align: center;                                         
+      339 +  padding: 56px 72px;                                         
+      340 +  background: #0d2040;                                        
+      341 +  border-radius: 16px;                                        
+      342 +  border: 1px solid #1e3a5f;                                  
+      343 +}                                                             
+      344 +.gameover-card.won  { border-color: #5db87a; }                
+      345 +.gameover-card.lost { border-color: #c44a4a; }                
+      346 +                                                              
+      347 +.gameover-icon { font-size: 4rem; margin-bottom: 16px; }      
+      348 +.gameover-card h1 { font-size: 2rem; margin-bottom: 12px; }   
+      349 +.gameover-card p { color: #7a9ab8; margin-bottom: 28px; }     
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && npm install 2>&1)
+  ⎿  added 25 packages, and audited 93 packages in 13s
+
+     13 packages are looking for funding
+     … +8 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && node server.js &)
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && npx vite build 2>&1 | tail
+      -30)
+  ⎿  vite v5.4.21 building for production...
+     transforming...
+     ✓ 44 modules transformed.
+     … +6 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+● Background command "Start WebSocket server in background" completed (exit code 0)
+
+● Clean build. Now commit and start the dev server:
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && git add -A && git commit -m
+      "$(cat <<'EOF'
+      Add multiplayer, mode selection, and ship SVG designs…)
+  ⎿  warning: in the working copy of 'package.json', LF will be replaced by
+      CRLF the next time Git touches it
+     warning: in the working copy of 'src/App.css', LF will be replaced by
+     … +32 lines (ctrl+o to expand)
+
+● Committed. To run the game, open two browser windows at http://localhost:5173
+  after starting with:
+
+  npm run dev
+
+  This runs both the WebSocket server (port 3001) and Vite dev server (port
+  5173) together via concurrently.
+
+  What was built:
+
+  ┌────────────┬────────────────────────────────────────────────────────────┐
+  │  Feature   │                           Detail                           │
+  ├────────────┼────────────────────────────────────────────────────────────┤
+  │ WebSocket  │ server.js — single room, 2-player, full game phases        │
+  │ server     │                                                            │
+  ├────────────┼────────────────────────────────────────────────────────────┤
+  │ Mode       │ Each player independently picks Click or Drag-and-Drop     │
+  │ selection  │ before placement                                           │
+  ├────────────┼────────────────────────────────────────────────────────────┤
+  │            │ Top-down naval silhouettes: carrier has a flight deck +    │
+  │ Ship SVGs  │ island, battleship has twin turrets, cruiser has a fore    │
+  │            │ turret, submarine has a conning tower + periscopes,        │
+  │            │ destroyer is sleek and narrow                              │
+  ├────────────┼────────────────────────────────────────────────────────────┤
+  │            │ Two grids side-by-side — your fleet on the left, enemy     │
+  │ Battle     │ waters on the right. Hits show as red markers, misses as   │
+  │ phase      │ blue pegs. Sunk ships are revealed on the enemy grid.      │
+  │            │ Turns alternate (hits keep your turn).                     │
+  ├────────────┼────────────────────────────────────────────────────────────┤
+  │ Game over  │ Victory/defeat screen with play-again button               │
+  └────────────┴────────────────────────────────────────────────────────────┘
+
+✻ Worked for 27m 29s
+
+❯ Battleship server listening on ws://localhost:3001                            
+  [0] node:events:487                                                           
+  [0]       throw er; // Unhandled 'error' event                                
+  [0]       ^                                                                   
+  [0]                                                                           
+  [0] Error: listen EADDRINUSE: address already in use :::3001                  
+  [0]     at Server.setupListenHandle [as _listen2] (node:net:2008:16)          
+  [0]     at listenInCluster (node:net:2065:12)                                 
+  [0]     at Server.listen (node:net:2170:7)                                    
+  [0]     at new WebSocketServer (C:\Users\JacobB\Documents\battleship\node_mod 
+  ules\ws\lib\websocket-server.js:106:20)                                       
+  [0]     at file:///C:/Users/JacobB/Documents/battleship/server.js:7:13        
+  [0]     at ModuleJob.run (node:internal/modules/esm/module_job:437:25)        
+  [0]     at async node:internal/modules/esm/loader:639:26                      
+  [0]     at async asyncRunEntryPointWithESMLoader                              
+  (node:internal/modules/run_main:101:5)                                        
+  [0] Emitted 'error' event on WebSocketServer instance at:                     
+  [0]     at Server.emit (node:events:509:28)                                   
+  [0]     at emitErrorNT (node:net:2044:8)                                      
+  [0]     at process.processTicksAndRejections                                  
+  (node:internal/process/task_queues:90:21) {                                   
+  [0]   code: 'EADDRINUSE',                                                     
+  [0]   errno: -4091,                                                           
+  [0]   syscall: 'listen',                                                      
+  [0]   address: '::',                                                          
+  [0]   port: 3001                                                              
+  [0] }                                                                         
+  [0]                                                                           
+  [0] Node.js v24.15.0                                                          
+  [0] node server.js exited with code 1                                         
+  [1] Re-optimizing dependencies because lockfile has changed                   
+  [1] Port 5173 is in use, trying another one...                                
+  [1] Port 5174 is in use, trying another one... seems like it failed           
+
+● Port 3001 is still held by the server I started during testing. Let me kill
+  it.
+
+● Bash(netstat -ano | findstr :3001)
+  ⎿    TCP    0.0.0.0:3001           0.0.0.0:0              LISTENING
+      1532
+       TCP    [::]:3001              [::]:0                 LISTENING
+     … +5 lines (ctrl+o to expand)
+
+● Bash(taskkill /PID 1532 /F)
+  ⎿  Error: Exit code 1
+     ERROR: Invalid argument/option - 
+     'C:/Users/JacobB/AppData/Local/Programs/Git/PID'.
+     Type "TASKKILL /?" for usage.
+
+● PowerShell(Stop-Process -Id 1532 -Force)
+  ⎿  (No output)
+
+● Port 3001 is now free. Run npm run dev again and it should start cleanly.
+
+※ recap: Building a multiplayer Battleship game in React with a Node WebSocket server. Ship placement, battle mode, and SVG ship designs are done and committed. Run npm run dev to start. (disable recaps in /config)
+
+❯ i cant get it to work, i open two browser tabs on the same port but both say  
+  waiting for opponent, do i need two different devices?                        
+
+● The issue is React's StrictMode — in development it deliberately mounts
+  components twice, which causes the WebSocket to connect, immediately
+  disconnect (resetting the room), then reconnect. The server sees the
+  disconnect and broadcasts opponent_disconnected to the other tab, sending it
+  back to "waiting".
+
+  Fix is simple: remove StrictMode from main.jsx.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src\main.jsx)  ⎿  Added 1 line, removed 5 lines
+       3  import App from './App'
+       4  import './index.css'
+       5  
+       6 -ReactDOM.createRoot(document.getElementById('root')).render(   
+       7 -  <React.StrictMode>                                           
+       8 -    <App />                                                    
+       9 -  </React.StrictMode>                                          
+      10 -)                                                              
+       6 +ReactDOM.createRoot(document.getElementById('root')).render(<Ap
+         +p />)                                                          
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && git add src/main.jsx && git
+      commit -m "$(cat <<'EOF'
+      Remove StrictMode to prevent double-mount WebSocket issues…)
+  ⎿  warning: in the working copy of 'src/main.jsx', LF will be replaced by
+      CRLF the next time Git touches it
+     [main 150bbf1] Remove StrictMode to prevent double-mount WebSocket iss
+     … +2 lines (ctrl+o to expand)
+
+● Restart npm run dev (kill the old process first if needed), then open two tabs
+   at the same URL — they should now handshake correctly and both advance to the
+   mode selection screen.
+
+✻ Baked for 1m 12s
+
+※ recap: Building a two-player browser Battleship game in React with a WebSocket server. The core multiplayer flow is now working — next step is testing the full game loop end to end. (disable recaps in /config)
+
+❯ now i want to add support for multiple rooms                                  
+  lets remove click to place and just have drag and drop.                       
+  i want to have some nice animations when firing shells and a when ship is     
+  sunk.                                                                         
+
+  Read 3 files (ctrl+o to expand)
+
+● Good picture of the codebase. Now I'll write everything in one go — rooms,
+  drag-only, animations.
+
+● Write(server.js)
+  ⎿  Added 55 lines, removed 64 lines
+       1  import { WebSocketServer } from 'ws'
+       2 +import { createServer } from 'http'                            
+       3  
+       4  const GRID_SIZE = 10
+       5  const SHIP_LENGTHS = { carrier: 5, battleship: 4, cruiser: 3, s
+          ubmarine: 3, destroyer: 2 }
+       6  const SHIP_IDS = Object.keys(SHIP_LENGTHS)
+       7  
+       7 -const wss = new WebSocketServer({ port: 3001 })                
+       8 +const server = createServer()                                  
+       9 +const wss = new WebSocketServer({ server })                    
+      10 +const rooms = new Map()                                        
+      11  
+       9 -function makeRoom() {                                          
+      12 +function generateRoomId() {                                    
+      13 +  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'             
+      14 +  let id                                                       
+      15 +  do {                                                         
+      16 +    id = Array.from({ length: 4 }, () => chars[Math.floor(Math.
+         +random() * chars.length)]).join('')                            
+      17 +  } while (rooms.has(id))                                      
+      18 +  return id                                                    
+      19 +}                                                              
+      20 +                                                               
+      21 +function makeRoom(id) {                                        
+      22    return {
+      11 -    sockets: [],       // [ws, ws]                             
+      12 -    modes: [null, null],                                       
+      23 +    id,                                                        
+      24 +    sockets: [],                                               
+      25      fleets: [null, null],
+      14 -    shots: [new Set(), new Set()], // shots[i] = cells player i
+         - has fired at                                                  
+      15 -    phase: 'waiting',  // waiting | placement | battle | gameov
+         -er                                                             
+      26 +    shots: [new Set(), new Set()],                             
+      27 +    phase: 'waiting',                                          
+      28      turn: 0,
+      29    }
+      30  }
+      31  
+      20 -let room = makeRoom()                                          
+      21 -                                                               
+      32  function send(ws, obj) {
+      33    if (ws.readyState === 1) ws.send(JSON.stringify(obj))
+      34  }
+      35  
+      26 -function broadcast(obj) {                                      
+      36 +function broadcast(room, obj) {                                
+      37    for (const ws of room.sockets) send(ws, obj)
+      38  }
+      39  
+      40  function validateFleet(ships) {
+      41    if (!Array.isArray(ships) || ships.length !== SHIP_IDS.length
+          ) return false
+      32 -  const placedIds = new Set()                                  
+      42 +  const seenIds = new Set()                                    
+      43    const occupied = new Set()
+      44    for (const ship of ships) {
+      35 -    if (!SHIP_IDS.includes(ship.id)) return false              
+      36 -    if (placedIds.has(ship.id)) return false                   
+      37 -    placedIds.add(ship.id)                                     
+      45 +    if (!SHIP_IDS.includes(ship.id) || seenIds.has(ship.id)) re
+         +turn false                                                     
+      46 +    seenIds.add(ship.id)                                       
+      47      if (!Array.isArray(ship.cells) || ship.cells.length !== SHI
+          P_LENGTHS[ship.id]) return false
+      48      for (const { row, col } of ship.cells) {
+      49        if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID
+          _SIZE) return false
+     ...
+       55    return true
+       56  }
+       57  
+       49 -function checkWin(fleet, shotSet) {                           
+       50 -  return fleet.every(ship => ship.cells.every(c => shotSet.has
+          -(`${c.row},${c.col}`)))                                       
+       51 -}                                                             
+       52 -                                                              
+       58  function getSunkShip(fleet, shotSet, row, col) {
+       59    const ship = fleet.find(s => s.cells.some(c => c.row === row
+            && c.col === col))
+       60    if (!ship) return null
+       61    return ship.cells.every(c => shotSet.has(`${c.row},${c.col}`
+           )) ? ship : null
+       62  }
+       63  
+       59 -wss.on('connection', (ws) => {                                
+       60 -  if (room.sockets.length >= 2) {                             
+       61 -    send(ws, { type: 'room_full' })                           
+       62 -    ws.close()                                                
+       63 -    return                                                    
+       64 +function checkWin(fleet, shotSet) {                           
+       65 +  return fleet.every(s => s.cells.every(c => shotSet.has(`${c.
+          +row},${c.col}`)))                                             
+       66 +}                                                             
+       67 +                                                              
+       68 +wss.on('connection', (ws, req) => {                           
+       69 +  const url = new URL(req.url, 'http://localhost')            
+       70 +  const requestedId = url.searchParams.get('room')?.toUpperCas
+          +e()                                                           
+       71 +                                                              
+       72 +  let room, pid                                               
+       73 +                                                              
+       74 +  if (requestedId) {                                          
+       75 +    room = rooms.get(requestedId)                             
+       76 +    if (!room) { send(ws, { type: 'error', message: 'Room not 
+          +found' }); ws.close(); return }                               
+       77 +    if (room.sockets.length >= 2) { send(ws, { type: 'room_ful
+          +l' }); ws.close(); return }                                   
+       78 +    pid = room.sockets.length                                 
+       79 +  } else {                                                    
+       80 +    const roomId = generateRoomId()                           
+       81 +    room = makeRoom(roomId)                                   
+       82 +    rooms.set(roomId, room)                                   
+       83 +    pid = 0                                                   
+       84    }
+       85  
+       66 -  const pid = room.sockets.length                             
+       86    room.sockets.push(ws)
+       87 +  send(ws, { type: 'welcome', pid, roomId: room.id })         
+       88  
+       69 -  send(ws, { type: 'welcome', pid })                          
+       70 -  broadcast({ type: 'player_count', count: room.sockets.length
+          - })                                                           
+       71 -                                                              
+       89    if (room.sockets.length === 2) {
+       73 -    room.phase = 'mode_select'                                
+       74 -    broadcast({ type: 'select_mode' })                        
+       90 +    room.phase = 'placement'                                  
+       91 +    broadcast(room, { type: 'placement_start' })              
+       92    }
+       93  
+       94    ws.on('message', (raw) => {
+       95      let msg
+       96      try { msg = JSON.parse(raw) } catch { return }
+       97  
+       81 -    if (msg.type === 'mode_selected' && room.phase === 'mode_s
+          -elect') {                                                     
+       82 -      room.modes[pid] = msg.mode                              
+       83 -      if (room.modes.every(Boolean)) {                        
+       84 -        room.phase = 'placement'                              
+       85 -        broadcast({ type: 'placement_start' })                
+       86 -      }                                                       
+       87 -    }                                                         
+       88 -                                                              
+       98      if (msg.type === 'placement_done' && room.phase === 'place
+           ment') {
+       90 -      if (!validateFleet(msg.ships)) {                        
+       91 -        send(ws, { type: 'error', message: 'Invalid fleet' }) 
+       92 -        return                                                
+       93 -      }                                                       
+       99 +      if (!validateFleet(msg.ships)) { send(ws, { type: 'error
+          +', message: 'Invalid fleet' }); return }                      
+      100        room.fleets[pid] = msg.ships
+       95 -      const opponentIdx = 1 - pid                             
+       96 -      if (room.fleets[opponentIdx]) {                         
+      101 +      if (room.fleets[1 - pid]) {                             
+      102          room.phase = 'battle'
+      103          room.turn = Math.random() < 0.5 ? 0 : 1
+      104          for (let i = 0; i < 2; i++) {
+     ...
+      110      }
+      111  
+      112      if (msg.type === 'attack' && room.phase === 'battle') {
+      108 -      if (room.turn !== pid) {                                
+      109 -        send(ws, { type: 'error', message: 'Not your turn' }) 
+      110 -        return                                                
+      111 -      }                                                       
+      113 +      if (room.turn !== pid) { send(ws, { type: 'error', messa
+          +ge: 'Not your turn' }); return }                              
+      114        const { row, col } = msg
+      115        if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRI
+           D_SIZE) return
+      116        const cellKey = `${row},${col}`
+      115 -      if (room.shots[pid].has(cellKey)) {                     
+      116 -        send(ws, { type: 'error', message: 'Already attacked' 
+          -})                                                            
+      117 -        return                                                
+      118 -      }                                                       
+      117 +      if (room.shots[pid].has(cellKey)) return                
+      118        room.shots[pid].add(cellKey)
+      119  
+      120        const opponentFleet = room.fleets[1 - pid]
+     ...
+      123  
+      124        if (checkWin(opponentFleet, room.shots[pid])) {
+      125          room.phase = 'gameover'
+      127 -        broadcast({ type: 'game_over', winner: pid, row, col, 
+          -hit: true, sunkShip })                                        
+      126 +        broadcast(room, { type: 'game_over', winner: pid, row,
+          + col, hit: true, sunkShip })                                  
+      127          return
+      128        }
+      129  
+      130        if (!hit) room.turn = 1 - room.turn
+      131  
+      133 -      broadcast({                                             
+      134 -        type: 'attack_result',                                
+      135 -        row, col, hit,                                        
+      136 -        sunkShip: sunkShip || null,                           
+      137 -        attackerPid: pid,                                     
+      138 -        nextTurn: room.turn,                                  
+      139 -      })                                                      
+      132 +      broadcast(room, { type: 'attack_result', row, col, hit, 
+          +sunkShip: sunkShip || null, attackerPid: pid, nextTurn: room.t
+          +urn })                                                        
+      133      }
+      134    })
+      135  
+      136    ws.on('close', () => {
+      137      room.sockets = room.sockets.filter(s => s !== ws)
+      145 -    if (room.sockets.length > 0) {                            
+      146 -      broadcast({ type: 'opponent_disconnected' })            
+      138 +    if (room.sockets.length > 0) broadcast(room, { type: 'oppo
+          +nent_disconnected' })                                         
+      139 +    if (room.sockets.length === 0) {                          
+      140 +      setTimeout(() => { if (!rooms.get(room.id)?.sockets.leng
+          +th) rooms.delete(room.id) }, 30000)                           
+      141      }
+      148 -    setTimeout(() => {                                        
+      149 -      if (room.sockets.length < 2) room = makeRoom()          
+      150 -    }, 500)                                                   
+      142    })
+      143  })
+      144  
+      154 -console.log('Battleship server listening on ws://localhost:300
+          -1')                                                           
+      145 +server.listen(3001, () => console.log('Battleship server on ws
+          +://localhost:3001'))                                          
+
+● Write(src\App.jsx)
+  ⎿  Added 39 lines, removed 43 lines
+       1  import { useState, useCallback } from 'react'
+       2  import { useWebSocket } from './hooks/useWebSocket'
+       3  import WaitingScreen from './screens/WaitingScreen'
+       4 -import ModeSelectScreen from './screens/ModeSelectScreen'      
+       4  import PlacementScreen from './screens/PlacementScreen'
+       5  import BattleScreen from './screens/BattleScreen'
+       6  import GameOverScreen from './screens/GameOverScreen'
+       7  import './App.css'
+       8  
+      10 -const WS_URL = 'ws://localhost:3001'                           
+       9 +function buildWsUrl() {                                        
+      10 +  const roomId = new URLSearchParams(window.location.search).ge
+         +t('room')                                                      
+      11 +  return roomId ? `ws://localhost:3001/?room=${roomId}` : 'ws:/
+         +/localhost:3001'                                               
+      12 +}                                                              
+      13  
+      14  export default function App() {
+      15    const [phase, setPhase] = useState('connecting')
+      16    const [pid, setPid] = useState(null)
+      15 -  const [placementMode, setPlacementMode] = useState(null)     
+      17 +  const [roomId, setRoomId] = useState(null)                   
+      18    const [waitingForOpponent, setWaitingForOpponent] = useState(
+          false)
+      17 -                                                               
+      18 -  // My placed ships (sent to server on ready)                 
+      19    const [myShips, setMyShips] = useState([])
+      20  
+      21 -  // Battle state                                              
+      21 +  // Committed battle state (already animated / resolved)      
+      22    const [currentTurn, setCurrentTurn] = useState(0)
+      23 -  const [myReceivedShots, setMyReceivedShots] = useState([])   
+         -// hits on my grid                                             
+      24 -  const [theirReceivedShots, setTheirReceivedShots] = useState(
+         -[]) // my attacks on them                                      
+      25 -  const [sunkEnemyShips, setSunkEnemyShips] = useState([])     
+         -// revealed enemy ships                                        
+      23 +  const [myReceivedShots, setMyReceivedShots] = useState([])   
+      24 +  const [theirReceivedShots, setTheirReceivedShots] = useState(
+         +[])                                                            
+      25 +  const [sunkEnemyShips, setSunkEnemyShips] = useState([])     
+      26    const [mySunkShips, setMySunkShips] = useState([])
+      27 -                                                               
+      27    const [winner, setWinner] = useState(null)
+      29 -  const [lastResult, setLastResult] = useState(null)           
+      28  
+      29 +  // Pending shot waiting to be animated by BattleScreen       
+      30 +  const [pendingShot, setPendingShot] = useState(null)         
+      31 +                                                               
+      32    const handleMessage = useCallback((msg) => {
+      33      switch (msg.type) {
+      34        case 'welcome':
+      35          setPid(msg.pid)
+      36 +        setRoomId(msg.roomId)                                  
+      37 +        // Update URL so opponent can join                     
+      38 +        if (!new URLSearchParams(window.location.search).get('r
+         +oom')) {                                                       
+      39 +          window.history.replaceState({}, '', `?room=${msg.room
+         +Id}`)                                                          
+      40 +        }                                                      
+      41          setPhase('waiting')
+      42          break
+      37 -      case 'select_mode':                                      
+      38 -        setPhase('mode_select')                                
+      39 -        break                                                  
+      43        case 'placement_start':
+      44          setPhase('placement')
+      45          break
+     ...
+      54        case 'attack_result': {
+      55          const { row, col, hit, sunkShip, attackerPid, nextTurn 
+          } = msg
+      56          setCurrentTurn(nextTurn)
+      54 -        setLastResult({ hit, sunk: sunkShip?.id ?? null, attack
+         -erPid })                                                       
+      57          if (attackerPid === pid) {
+      56 -          // My attack landed on them                          
+      57 -          setTheirReceivedShots(prev => [...prev, { row, col, h
+         -it }])                                                         
+      58 -          if (sunkShip) setSunkEnemyShips(prev => [...prev, sun
+         -kShip])                                                        
+      58 +          // My shot — animate first, commit after             
+      59 +          setPendingShot({ row, col, hit, sunkShip: sunkShip ||
+         + null })                                                       
+      60          } else {
+      60 -          // Their attack landed on me                         
+      61 +          // Incoming shot on my grid — immediate              
+      62            setMyReceivedShots(prev => [...prev, { row, col, hit 
+          }])
+      63            if (sunkShip) setMySunkShips(prev => [...prev, sunkSh
+          ip])
+      64          }
+     ...
+      67        case 'game_over': {
+      68          const { winner: w, row, col, hit, sunkShip, attackerPid
+           } = msg
+      69          setWinner(w)
+      69 -        // Record the final shot                               
+      70          if (w === pid) {
+      71 -          setTheirReceivedShots(prev => [...prev, { row, col, h
+         -it }])                                                         
+      72 -          if (sunkShip) setSunkEnemyShips(prev => [...prev, sun
+         -kShip])                                                        
+      71 +          // My winning shot — animate then go to gameover     
+      72 +          setPendingShot({ row, col, hit, sunkShip: sunkShip ||
+         + null, final: true })                                          
+      73          } else {
+      74 +          // I lost — their final shot on me                   
+      75            setMyReceivedShots(prev => [...prev, { row, col, hit 
+          }])
+      76 +          setPhase('gameover')                                 
+      77          }
+      76 -        setPhase('gameover')                                   
+      78          break
+      79        }
+      80        case 'opponent_disconnected':
+     ...
+       85          setTheirReceivedShots([])
+       86          setSunkEnemyShips([])
+       87          setMySunkShips([])
+       88 +        setPendingShot(null)                                  
+       89          break
+       90      }
+       91    }, [pid])
+       92  
+       91 -  const { send, connected } = useWebSocket(WS_URL, handleMessa
+          -ge)                                                           
+       93 +  const { send } = useWebSocket(buildWsUrl(), handleMessage)  
+       94  
+       93 -  const handleModeSelect = useCallback((mode) => {            
+       94 -    setPlacementMode(mode)                                    
+       95 -    send({ type: 'mode_selected', mode })                     
+       96 -  }, [send])                                                  
+       97 -                                                              
+       95    const handlePlacementDone = useCallback((ships) => {
+       96      setMyShips(ships)
+       97      send({ type: 'placement_done', ships })
+     ...
+      102      send({ type: 'attack', row, col })
+      103    }, [send])
+      104  
+      108 -  if (phase === 'connecting' || (phase === 'waiting' && !conne
+          -cted)) {                                                      
+      109 -    return <WaitingScreen message="Connecting to server…" />  
+      110 -  }                                                           
+      111 -  if (phase === 'waiting') {                                  
+      112 -    return <WaitingScreen />                                  
+      113 -  }                                                           
+      114 -  if (phase === 'mode_select') {                              
+      115 -    return <ModeSelectScreen onSelect={handleModeSelect} />   
+      116 -  }                                                           
+      105 +  // Called by BattleScreen when the shot animation has fully 
+          +committed                                                     
+      106 +  const handleShotCommitted = useCallback((shot) => {         
+      107 +    setTheirReceivedShots(prev => [...prev, { row: shot.row, c
+          +ol: shot.col, hit: shot.hit }])                               
+      108 +    if (shot.sunkShip) setSunkEnemyShips(prev => [...prev, sho
+          +t.sunkShip])                                                  
+      109 +    if (shot.final) setPhase('gameover')                      
+      110 +    setPendingShot(null)                                      
+      111 +  }, [])                                                      
+      112 +                                                              
+      113 +  if (phase === 'connecting') return <WaitingScreen message="C
+          +onnecting…" />                                                
+      114 +  if (phase === 'waiting') return <WaitingScreen roomId={roomI
+          +d} />                                                         
+      115    if (phase === 'placement') {
+      116      return (
+      117        <PlacementScreen
+      120 -        mode={placementMode}                                  
+      118          onDone={handlePlacementDone}
+      119          waitingForOpponent={waitingForOpponent}
+      120        />
+     ...
+      130          theirReceivedShots={theirReceivedShots}
+      131          sunkEnemyShips={sunkEnemyShips}
+      132          mySunkShips={mySunkShips}
+      133 +        pendingShot={pendingShot}                             
+      134          onAttack={handleAttack}
+      137 -        lastResult={lastResult}                               
+      135 +        onShotCommitted={handleShotCommitted}                 
+      136        />
+      137      )
+      138    }
+      141 -  if (phase === 'gameover') {                                 
+      142 -    return <GameOverScreen winner={winner} pid={pid} />       
+      143 -  }                                                           
+      139 +  if (phase === 'gameover') return <GameOverScreen winner={win
+          +ner} pid={pid} />                                             
+      140    return null
+      141  }
+
+● Write(src\screens\WaitingScreen.jsx)
+  ⎿  Added 32 lines, removed 3 lines
+       1 -export default function WaitingScreen({ message }) {           
+       1 +import { useState } from 'react'                               
+       2 +                                                               
+       3 +export default function WaitingScreen({ message, roomId }) {   
+       4 +  const [copied, setCopied] = useState(false)                  
+       5 +                                                               
+       6 +  const shareUrl = roomId ? `${window.location.origin}?room=${r
+         +oomId}` : null                                                 
+       7 +                                                               
+       8 +  function copyUrl() {                                         
+       9 +    if (!shareUrl) return                                      
+      10 +    navigator.clipboard.writeText(shareUrl).then(() => {       
+      11 +      setCopied(true)                                          
+      12 +      setTimeout(() => setCopied(false), 2000)                 
+      13 +    })                                                         
+      14 +  }                                                            
+      15 +                                                               
+      16    return (
+      17      <div className="fullscreen-center">
+      18        <div className="waiting-card">
+      19          <div className="sonar-ring" />
+       6 -        <h2>{message ?? 'Waiting for opponent…'}</h2>          
+       7 -        <p className="waiting-sub">Share this page with your op
+         -ponent to start</p>                                            
+      20 +        {message ? (                                           
+      21 +          <h2>{message}</h2>                                   
+      22 +        ) : roomId ? (                                         
+      23 +          <>                                                   
+      24 +            <h2>Room <span className="room-code">{roomId}</span
+         +></h2>                                                         
+      25 +            <p className="waiting-sub">Share this link with you
+         +r opponent:</p>                                                
+      26 +            <div className="share-row">                        
+      27 +              <span className="share-url">{shareUrl}</span>    
+      28 +              <button className="copy-btn" onClick={copyUrl}>  
+      29 +                {copied ? 'Copied!' : 'Copy'}                  
+      30 +              </button>                                        
+      31 +            </div>                                             
+      32 +            <p className="waiting-dots">Waiting for opponent to
+         + join</p>                                                      
+      33 +          </>                                                  
+      34 +        ) : (                                                  
+      35 +          <h2>Waiting for opponent…</h2>                       
+      36 +        )}                                                     
+      37        </div>
+      38      </div>
+      39    )
+
+● Write(src\screens\PlacementScreen.jsx)
+  ⎿  Added 12 lines, removed 20 lines
+       4  import Grid from '../components/Grid'
+       5  import ShipList from '../components/ShipList'
+       6  
+       7 -export default function PlacementScreen({ mode, onDone, waiting
+         -ForOpponent }) {                                               
+       7 +export default function PlacementScreen({ onDone, waitingForOpp
+         +onent }) {                                                     
+       8    const [placedShips, setPlacedShips] = useState([])
+       9    const [selectedShipId, setSelectedShipId] = useState(SHIPS[0]
+          .id)
+      10    const [horizontal, setHorizontal] = useState(true)
+     ...
+      29      setHoverCells([])
+      30    }, [placedShips, placedIds, horizontal])
+      31  
+      32 -  const handleCellClick = useCallback((row, col) => {          
+      33 -    if (!activeShip) return                                    
+      34 -    placeShip(row, col, activeShip.id)                         
+      35 -  }, [activeShip, placeShip])                                  
+      36 -                                                               
+      37 -  const handleCellHover = useCallback((row, col) => {          
+      38 -    if (!activeShip) return                                    
+      39 -    const cells = cellsForPlacement(row, col, activeShip.length
+         -, horizontal)                                                  
+      40 -    setHoverCells(cells)                                       
+      41 -    setHoverValid(canPlace(cells, placedShips))                
+      42 -  }, [activeShip, horizontal, placedShips])                    
+      43 -                                                               
+      32    const handleDrop = useCallback((row, col) => {
+      33      const id = dragShipId ?? selectedShipId
+      34      placeShip(row, col, id)
+      35      setDragShipId(null)
+      36 +    setHoverCells([])                                          
+      37    }, [dragShipId, selectedShipId, placeShip])
+      38  
+      39    const handleRemove = useCallback((shipId) => {
+     ...
+      60              ships={SHIPS}
+      61              placedIds={placedIds}
+      62              selectedShipId={selectedShipId}
+      74 -            mode={mode}                                        
+      75 -            onSelect={mode === 'click' ? setSelectedShipId : un
+         -defined}                                                       
+      76 -            onDragStart={mode === 'drag' ? (id) => { setDragShi
+         -pId(id); setSelectedShipId(id) } : undefined}                  
+      77 -            onDragEnd={() => setDragShipId(null)}              
+      63 +            onDragStart={(id) => { setDragShipId(id); setSelect
+         +edShipId(id) }}                                                
+      64 +            onDragEnd={() => { setDragShipId(null); setHoverCel
+         +ls([]) }}                                                      
+      65            />
+      66            <div className="controls">
+      67              <button
+     ...
+       82  
+       83          <Grid
+       84            placedShips={placedShips}
+       98 -          hoverCells={mode === 'click' || dragShipId ? hoverCe
+          -lls : []}                                                     
+       85 +          hoverCells={dragShipId ? hoverCells : []}           
+       86            hoverValid={hoverValid}
+      100 -          onCellClick={waitingForOpponent ? undefined : handle
+          -CellClick}                                                    
+      101 -          onCellHover={waitingForOpponent ? undefined : handle
+          -CellHover}                                                    
+       87 +          onCellHover={(row, col) => {                        
+       88 +            if (!activeShip || waitingForOpponent) return     
+       89 +            const cells = cellsForPlacement(row, col, activeSh
+          +ip.length, horizontal)                                        
+       90 +            setHoverCells(cells)                              
+       91 +            setHoverValid(canPlace(cells, placedShips))       
+       92 +          }}                                                  
+       93            onMouseLeave={() => setHoverCells([])}
+       94 +          onDrop={waitingForOpponent ? undefined : handleDrop}
+       95            onRemoveShip={waitingForOpponent ? undefined : handl
+           eRemove}
+       96            setHorizontal={setHorizontal}
+       97            activeShip={activeShip}
+
+● Now the shell animation component — the most important new piece:
+
+● Write(src\components\ShellAnimation.jsx)
+  ⎿  Wrote 68 lines to src\components\ShellAnimation.jsx
+       2 import { createPortal } from 'react-dom'rom 'react'
+       3 import { CELL_SIZE, ROW_LABEL_WIDTH, COL_LABEL_HEIGHT } from '..
+       4 /constants'
+       5 // Renders a shell projectile in a fixed overlay, then triggers 
+         an impact animation.
+       7 export default function ShellAnimation({ gridRef, row, col, hit,
+          sunkShip, onCommit, onComplete }) {
+         t | done[phase, setPhase] = useState('flying') // flying | impac
+       9 
+      10   // Positions in viewport coords, computed once on mount
+     … +65 lines (ctrl+o to expand)
+
+● Write(src\components\ShipOverlay.jsx)
+  ⎿  Added 3 lines, removed 3 lines
+      1  import { CELL_SIZE, ROW_LABEL_WIDTH, COL_LABEL_HEIGHT } from '..
+         /constants'
+      2  import ShipSvg from './ShipSvg'
+      3  
+      4 -export default function ShipOverlay({ ship, onClick }) {        
+      4 +export default function ShipOverlay({ ship, onClick, sinking }) 
+        +{                                                               
+      5    const { id, cells, horizontal } = ship
+      6    const minRow = Math.min(...cells.map(c => c.row))
+      7    const minCol = Math.min(...cells.map(c => c.col))
+     ...
+      14  
+      15    return (
+      16      <div
+      17 +      className={`ship-overlay-wrap ${sinking ? 'ship-sinking' 
+         +: ''}`}                                                        
+      18        style={{
+      19          position: 'absolute',
+      20          top,
+     ...
+      24          pointerEvents: onClick ? 'auto' : 'none',
+      25          cursor: onClick ? 'pointer' : 'default',
+      26          zIndex: 2,
+      26 -        // For vertical ships, rotate the SVG inside           
+      27          display: 'flex',
+      28          alignItems: 'center',
+      29          justifyContent: 'center',
+      30        }}
+      31        onClick={onClick}
+      32 -      title={onClick ? 'Click to remove' : undefined}          
+      32 +      title={onClick ? 'Drag to reposition or click to remove' 
+         +: undefined}                                                   
+      33      >
+      34        <div style={{
+      35          width: horizontal ? '100%' : height,
+
+● Now the BattleScreen with grid refs and animation orchestration:
+
+● Write(src\screens\BattleScreen.jsx)
+  ⎿  Added 76 lines, removed 29 lines
+        1 -import { useState, useCallback } from 'react'                 
+        1 +import { useState, useCallback, useRef } from 'react'         
+        2  import Grid from '../components/Grid'
+        3 +import ShellAnimation from '../components/ShellAnimation'     
+        4  
+        5  export default function BattleScreen({
+        6    pid,
+        7    currentTurn,
+        8    myShips,
+        9    myReceivedShots,
+        9 -  myReceivedHits,                                             
+       10    theirReceivedShots,
+       11    sunkEnemyShips,
+       12    mySunkShips,
+       13 +  pendingShot,                                                
+       14    onAttack,
+       14 -  lastResult,                                                 
+       15 +  onShotCommitted,                                            
+       16  }) {
+       17    const [hoverCells, setHoverCells] = useState([])
+       18 +  // Shot markers committed to the enemy grid (subset of their
+          +ReceivedShots + the just-committed one)                       
+       19 +  // We track locally whether the pending shot has been commit
+          +ted to the cell already                                       
+       20 +  const [committedTheirShots, setCommittedTheirShots] = useSta
+          +te([])                                                        
+       21 +  // Sinking state: shipId → true once animation starts       
+       22 +  const [sinkingIds, setSinkingIds] = useState(new Set())     
+       23 +                                                              
+       24 +  const enemyGridRef = useRef(null)                           
+       25    const isMyTurn = currentTurn === pid
+       26  
+       27 +  // Sync theirReceivedShots into committedTheirShots (they gr
+          +ow as results arrive)                                         
+       28 +  // committedTheirShots is only needed so we can add the shot
+          + marker mid-animation;                                        
+       29 +  // outside of an animation, just mirror theirReceivedShots  
+       30 +  const displayedTheirShots = pendingShot                     
+       31 +    ? committedTheirShots                                     
+       32 +    : theirReceivedShots                                      
+       33 +                                                              
+       34    const handleCellClick = useCallback((row, col) => {
+       20 -    if (!isMyTurn) return                                     
+       35 +    if (!isMyTurn || pendingShot) return                      
+       36      const alreadyShot = theirReceivedShots.some(s => s.row ===
+            row && s.col === col)
+       37      if (alreadyShot) return
+       38      onAttack(row, col)
+       24 -  }, [isMyTurn, theirReceivedShots, onAttack])                
+       39 +  }, [isMyTurn, pendingShot, theirReceivedShots, onAttack])   
+       40  
+       41    const handleHover = useCallback((row, col) => {
+       27 -    if (!isMyTurn) return                                     
+       42 +    if (!isMyTurn || pendingShot) { setHoverCells([]); return 
+          +}                                                             
+       43      const alreadyShot = theirReceivedShots.some(s => s.row ===
+            row && s.col === col)
+       29 -    if (alreadyShot) setHoverCells([])                        
+       30 -    else setHoverCells([{ row, col }])                        
+       31 -  }, [isMyTurn, theirReceivedShots])                          
+       44 +    setHoverCells(alreadyShot ? [] : [{ row, col }])          
+       45 +  }, [isMyTurn, pendingShot, theirReceivedShots])             
+       46  
+       47 +  // Called by ShellAnimation when shell reaches target — add 
+          +the shot marker                                               
+       48 +  const handleShotCommit = useCallback(() => {                
+       49 +    if (!pendingShot) return                                  
+       50 +    setCommittedTheirShots(prev => [...prev, {                
+       51 +      row: pendingShot.row,                                   
+       52 +      col: pendingShot.col,                                   
+       53 +      hit: pendingShot.hit,                                   
+       54 +      fresh: true,                                            
+       55 +    }])                                                       
+       56 +    if (pendingShot.sunkShip) {                               
+       57 +      setSinkingIds(prev => new Set([...prev, pendingShot.sunk
+          +Ship.id]))                                                    
+       58 +    }                                                         
+       59 +  }, [pendingShot])                                           
+       60 +                                                              
+       61 +  // Called by ShellAnimation when all animations are done    
+       62 +  const handleShotComplete = useCallback(() => {              
+       63 +    if (!pendingShot) return                                  
+       64 +    setCommittedTheirShots([]) // reset — BattleScreen will no
+          +w use theirReceivedShots                                      
+       65 +    onShotCommitted(pendingShot)                              
+       66 +  }, [pendingShot, onShotCommitted])                          
+       67 +                                                              
+       68 +  // Merge sunkEnemyShips with the currently-animating sunk sh
+          +ip                                                            
+       69 +  const sunkShipsList = pendingShot?.sunkShip                 
+       70 +    ? [...sunkEnemyShips, pendingShot.sunkShip]               
+       71 +    : sunkEnemyShips                                          
+       72 +                                                              
+       73    return (
+       74      <div className="battle-screen">
+       35 -      <div className={`turn-banner ${isMyTurn ? 'my-turn' : 't
+          -heir-turn'}`}>                                                
+       36 -        {isMyTurn ? 'Your turn — fire!' : "Opponent's turn…"} 
+       37 -        {lastResult && (                                      
+       38 -          <span className="last-result">                      
+       39 -            {lastResult.sunk                                  
+       40 -              ? ` Sunk ${lastResult.sunk}!`                   
+       41 -              : lastResult.hit                                
+       42 -                ? ' Hit!'                                     
+       43 -                : ' Miss.'}                                   
+       44 -          </span>                                             
+       45 -        )}                                                    
+       75 +      <div className={`turn-banner ${isMyTurn && !pendingShot 
+          +? 'my-turn' : 'their-turn'}`}>                                
+       76 +        {pendingShot                                          
+       77 +          ? (pendingShot.hit ? (pendingShot.sunkShip ? `You su
+          +nk their ${pendingShot.sunkShip.id}!` : 'Hit!') : 'Miss!')    
+       78 +          : isMyTurn ? 'Your turn — fire!' : "Opponent's turn…
+          +"                                                             
+       79 +        }                                                     
+       80        </div>
+       81  
+       82        <div className="battle-layout">
+       83          <div className="battle-half">
+       84            <h3 className="grid-title">Your waters</h3>
+       85            <Grid
+       52 -            placedShips={myShips.map(s => ({ ...s, horizontal:
+          - s.horizontal ?? true }))}                                    
+       86 +            placedShips={myShips}                             
+       87              shots={myReceivedShots}
+       54 -            revealedShips={[]}                                
+       88 +            sunkShipIds={new Set(mySunkShips.map(s => s.id))} 
+       89            />
+       90          </div>
+       91  
+       92          <div className="battle-divider" />
+       93  
+       60 -        <div className="battle-half">                         
+       61 -          <h3 className={`grid-title ${isMyTurn ? 'active-grid
+          -' : ''}`}>                                                    
+       62 -            Enemy waters {isMyTurn && '← click to fire'}      
+       94 +        <div className="battle-half" ref={enemyGridRef}>      
+       95 +          <h3 className={`grid-title ${isMyTurn && !pendingSho
+          +t ? 'active-grid' : ''}`}>                                    
+       96 +            Enemy waters {isMyTurn && !pendingShot && <span cl
+          +assName="fire-hint">← fire!</span>}                           
+       97            </h3>
+       98            <Grid
+       99              placedShips={[]}
+       66 -            shots={theirReceivedShots}                        
+       67 -            revealedShips={sunkEnemyShips}                    
+       68 -            onCellClick={isMyTurn ? handleCellClick : undefine
+          -d}                                                            
+       69 -            onCellHover={isMyTurn ? handleHover : undefined}  
+      100 +            shots={displayedTheirShots}                       
+      101 +            revealedShips={sunkShipsList}                     
+      102 +            sinkingIds={sinkingIds}                           
+      103 +            onCellClick={handleCellClick}                     
+      104 +            onCellHover={handleHover}                         
+      105              onMouseLeave={() => setHoverCells([])}
+      106              hoverCells={hoverCells}
+      107              hoverValid={true}
+      108            />
+      109          </div>
+      110        </div>
+      111 +                                                              
+      112 +      {pendingShot && (                                       
+      113 +        <ShellAnimation                                       
+      114 +          gridRef={enemyGridRef}                              
+      115 +          row={pendingShot.row}                               
+      116 +          col={pendingShot.col}                               
+      117 +          hit={pendingShot.hit}                               
+      118 +          sunkShip={pendingShot.sunkShip}                     
+      119 +          onCommit={handleShotCommit}                         
+      120 +          onComplete={handleShotComplete}                     
+      121 +        />                                                    
+      122 +      )}                                                      
+      123      </div>
+      124    )
+      125  }
+
+● Update Grid.jsx to support sinkingIds and pass the sinking prop through to
+  ShipOverlay:
+
+● Write(src\components\Grid.jsx)
+  ⎿  Added 22 lines, removed 31 lines
+      22  }
+      23  
+      24  export default function Grid({
+      25 -  // Placement props                                           
+      25    placedShips = [],
+      26    hoverCells = [],
+      27    hoverValid = true,
+     ...
+      29    onCellHover,
+      30    onMouseLeave,
+      31    onRemoveShip,
+      33 -  // For keyboard rotation listener                            
+      32 +  onDrop,                                                      
+      33    setHorizontal,
+      34    activeShip,
+      36 -  // Battle props                                              
+      37 -  shots = [],           // { row, col, hit } — markers to show 
+         -on grid                                                        
+      38 -  revealedShips = [],   // sunk enemy ships to show as overlays
+      35 +  shots = [],                                                  
+      36 +  revealedShips = [],                                          
+      37 +  sinkingIds = new Set(),                                      
+      38 +  sunkShipIds = new Set(),                                     
+      39  }) {
+      40    const occupied = buildOccupiedMap(placedShips)
+      41 -  const revealed = buildOccupiedMap(revealedShips)             
+      41    const shotMap = buildShotMap(shots)
+      42    const hoverSet = new Set(hoverCells.map(c => `${c.row},${c.co
+          l}`))
+      43  
+      44    const handleKeyDown = useCallback((e) => {
+      46 -    if ((e.key === 'r' || e.key === 'R') && setHorizontal) {   
+      47 -      setHorizontal(h => !h)                                   
+      48 -    }                                                          
+      45 +    if ((e.key === 'r' || e.key === 'R') && setHorizontal) setH
+         +orizontal(h => !h)                                             
+      46    }, [setHorizontal])
+      47  
+      48    useEffect(() => {
+     ...
+      51      return () => window.removeEventListener('keydown', handleKe
+          yDown)
+      52    }, [handleKeyDown, setHorizontal])
+      53  
+      57 -  const handleDragOver = (e, row, col) => {                    
+      58 -    e.preventDefault()                                         
+      59 -    if (!activeShip) return                                    
+      60 -    onCellHover?.(row, col)                                    
+      61 -    e.dataTransfer.dropEffect = 'move'                         
+      62 -  }                                                            
+      63 -                                                               
+      54    return (
+      65 -    <div className="grid-wrapper" onMouseLeave={onMouseLeave} s
+         -tyle={{ position: 'relative' }}>                               
+      66 -      {/* Column number labels */}                             
+      55 +    <div className="grid-wrapper" onMouseLeave={onMouseLeave}> 
+      56        <div className="grid-col-labels">
+      57          <div className="grid-corner" />
+      58          {Array.from({ length: GRID_SIZE }, (_, i) => (
+     ...
+      60          ))}
+      61        </div>
+      62  
+      74 -      {/* Rows */}                                             
+      63        {Array.from({ length: GRID_SIZE }, (_, row) => (
+      64          <div key={row} className="grid-row">
+      65            <div className="grid-label row-label">{LETTERS[row]}<
+          /div>
+      66            {Array.from({ length: GRID_SIZE }, (_, col) => {
+      67              const key = `${row},${col}`
+      80 -            const shipId = occupied[key]                       
+      81 -            const revealedId = revealed[key]                   
+      68              const shot = shotMap[key]
+      69              const isHover = hoverSet.has(key)
+      70  
+      71              let cellClass = 'cell'
+      86 -            if (shipId) cellClass += ' occupied'               
+      87 -            if (revealedId) cellClass += ' revealed'           
+      72 +            if (occupied[key]) cellClass += ' occupied'        
+      73              if (isHover) cellClass += hoverValid ? ' hover-vali
+          d' : ' hover-invalid'
+      74              if (shot) cellClass += shot.hit ? ' shot-hit' : ' s
+          hot-miss'
+      75 +            if (shot?.fresh) cellClass += ' shot-fresh'        
+      76  
+      77              return (
+      78                <div
+     ...
+       80                  className={cellClass}
+       81                  onClick={() => onCellClick?.(row, col)}
+       82                  onMouseEnter={() => onCellHover?.(row, col)}
+       97 -                onDragOver={(e) => handleDragOver(e, row, col)
+          -}                                                             
+       98 -                onDrop={(e) => { e.preventDefault(); onCellCli
+          -ck?.(row, col) }}                                             
+       83 +                onDragOver={(e) => {                          
+       84 +                  e.preventDefault()                          
+       85 +                  if (activeShip) onCellHover?.(row, col)     
+       86 +                  e.dataTransfer.dropEffect = 'move'          
+       87 +                }}                                            
+       88 +                onDrop={(e) => { e.preventDefault(); onDrop?.(
+          +row, col) }}                                                  
+       89                >
+      100 -                {shot && (                                    
+      101 -                  <div className={`shot-marker ${shot.hit ? 'h
+          -it' : 'miss'}`} />                                            
+      102 -                )}                                            
+       90 +                {shot && <div className={`shot-marker ${shot.h
+          +it ? 'hit' : 'miss'}`} />}                                    
+       91                </div>
+       92              )
+       93            })}
+       94          </div>
+       95        ))}
+       96  
+      109 -      {/* Ship overlays — placed ships */}                    
+       97        {placedShips.map(ship => (
+       98          <ShipOverlay
+       99            key={ship.id}
+      100            ship={ship}
+      101            onClick={onRemoveShip ? () => onRemoveShip(ship.id) 
+           : undefined}
+      102 +          sinking={sunkShipIds.has(ship.id)}                  
+      103          />
+      104        ))}
+      105  
+      118 -      {/* Revealed sunk enemy ships */}                       
+      106        {revealedShips.map(ship => (
+      120 -        <ShipOverlay key={`revealed-${ship.id}`} ship={ship} /
+          ->                                                             
+      107 +        <ShipOverlay                                          
+      108 +          key={`rev-${ship.id}`}                              
+      109 +          ship={ship}                                         
+      110 +          sinking={sinkingIds.has(ship.id)}                   
+      111 +        />                                                    
+      112        ))}
+      113      </div>
+      114    )
+
+● Update ShipList to drag-only (no click selection):
+
+● Write(src\components\ShipList.jsx)
+  ⎿  Added 5 lines, removed 8 lines
+       1 -export default function ShipList({ ships, placedIds, selectedSh
+         -ipId, mode, onSelect, onDragStart, onDragEnd }) {              
+       1 +export default function ShipList({ ships, placedIds, onDragStar
+         +t, onDragEnd }) {                                              
+       2    return (
+       3      <div className="ship-list">
+       4        <h2>Fleet</h2>
+       5        {ships.map(ship => {
+       6          const placed = placedIds.has(ship.id)
+       7 -        const selected = selectedShipId === ship.id && !placed 
+       8 -        const draggable = mode === 'drag' && !placed           
+       7          return (
+       8            <div
+       9              key={ship.id}
+      12 -            className={`ship-item ${placed ? 'placed' : ''} ${s
+         -elected ? 'selected' : ''}`}                                   
+      13 -            draggable={draggable}                              
+      14 -            onClick={() => !placed && onSelect?.(ship.id)}     
+      15 -            onDragStart={() => draggable && onDragStart?.(ship.
+         -id)}                                                           
+      10 +            className={`ship-item ${placed ? 'placed' : 'dragga
+         +ble'}`}                                                        
+      11 +            draggable={!placed}                                
+      12 +            onDragStart={() => !placed && onDragStart?.(ship.id
+         +)}                                                             
+      13              onDragEnd={onDragEnd}
+      14            >
+      15              <span className="ship-name">{ship.name}</span>
+     ...
+      18                  <div key={i} className="ship-block" />
+      19                ))}
+      20              </div>
+      24 -            {placed && <span className="placed-badge">Placed</s
+         -pan>}                                                          
+      21 +            {placed && <span className="placed-badge">✓</span>}
+      22            </div>
+      23          )
+      24        })}
+
+● Now the full CSS with all animation keyframes:
+
+● Write(src\App.css)
+  ⎿  Added 232 lines, removed 100 lines
+       24  /* ── Waiting screen ──────────────────────────────── */
+       25  .waiting-card {
+       26    text-align: center;
+       27 -  padding: 48px 64px;                                         
+       27 +  padding: 48px 56px;                                         
+       28    background: #0d2040;
+       29    border-radius: 16px;
+       30    border: 1px solid #1e3a5f;
+       31 -  position: relative;                                         
+       31  }
+       32  
+       33  .waiting-card h2 {
+       34    font-size: 1.4rem;
+       35    color: #7ec8e3;
+       37 -  margin-bottom: 12px;                                        
+       36 +  margin-bottom: 16px;                                        
+       37  }
+       38  
+       40 -.waiting-sub {                                                
+       41 -  color: #5a7a9a;                                             
+       42 -  font-size: 0.9rem;                                          
+       39 +.room-code {                                                  
+       40 +  font-size: 2rem;                                            
+       41 +  font-weight: 800;                                           
+       42 +  letter-spacing: 0.2em;                                      
+       43 +  color: #fff;                                                
+       44 +  display: block;                                             
+       45 +  margin-top: 4px;                                            
+       46  }
+       47  
+       48 +.waiting-sub  { color: #5a7a9a; font-size: 0.88rem; margin-bot
+          +tom: 12px; }                                                  
+       49 +.waiting-dots { color: #4a6a88; font-size: 0.82rem; margin-top
+          +: 16px; }                                                     
+       50 +                                                              
+       51 +.share-row {                                                  
+       52 +  display: flex;                                              
+       53 +  align-items: center;                                        
+       54 +  gap: 10px;                                                  
+       55 +  background: #0a1628;                                        
+       56 +  border: 1px solid #2a4a6a;                                  
+       57 +  border-radius: 8px;                                         
+       58 +  padding: 8px 12px;                                          
+       59 +  margin-bottom: 4px;                                         
+       60 +}                                                             
+       61 +                                                              
+       62 +.share-url {                                                  
+       63 +  flex: 1;                                                    
+       64 +  font-size: 0.78rem;                                         
+       65 +  color: #8ab8d0;                                             
+       66 +  word-break: break-all;                                      
+       67 +  text-align: left;                                           
+       68 +}                                                             
+       69 +                                                              
+       70 +.copy-btn {                                                   
+       71 +  flex-shrink: 0;                                             
+       72 +  padding: 4px 12px;                                          
+       73 +  border-radius: 5px;                                         
+       74 +  border: 1px solid #4a90c4;                                  
+       75 +  background: rgba(74,144,196,0.15);                          
+       76 +  color: #7ec8e3;                                             
+       77 +  font-size: 0.78rem;                                         
+       78 +  cursor: pointer;                                            
+       79 +  transition: background 0.15s;                               
+       80 +}                                                             
+       81 +.copy-btn:hover { background: rgba(74,144,196,0.3); }         
+       82 +                                                              
+       83  .sonar-ring {
+       46 -  width: 80px;                                                
+       47 -  height: 80px;                                               
+       84 +  width: 72px;                                                
+       85 +  height: 72px;                                               
+       86    border-radius: 50%;
+       87    border: 3px solid #4a90c4;
+       88    margin: 0 auto 24px;
+       89    animation: sonar 1.8s ease-out infinite;
+       90  }
+       53 -                                                              
+       91  @keyframes sonar {
+       92    0%   { transform: scale(0.5); opacity: 1; }
+       56 -  100% { transform: scale(1.5); opacity: 0; }                 
+       93 +  100% { transform: scale(1.6); opacity: 0; }                 
+       94  }
+       95  
+       59 -/* ── Mode select ─────────────────────────────────── */      
+       60 -.mode-select-card {                                           
+       61 -  text-align: center;                                         
+       62 -  padding: 48px;                                              
+       63 -  background: #0d2040;                                        
+       64 -  border-radius: 16px;                                        
+       65 -  border: 1px solid #1e3a5f;                                  
+       66 -  max-width: 520px;                                           
+       67 -  width: 100%;                                                
+       68 -}                                                             
+       69 -                                                              
+       70 -.mode-select-card h1 {                                        
+       71 -  margin-bottom: 8px;                                         
+       72 -}                                                             
+       73 -                                                              
+       74 -.mode-sub {                                                   
+       75 -  color: #5a7a9a;                                             
+       76 -  font-size: 0.9rem;                                          
+       77 -  margin-bottom: 32px;                                        
+       78 -}                                                             
+       79 -                                                              
+       80 -.mode-options {                                               
+       81 -  display: flex;                                              
+       82 -  gap: 20px;                                                  
+       83 -  justify-content: center;                                    
+       84 -  flex-wrap: wrap;                                            
+       85 -}                                                             
+       86 -                                                              
+       87 -.mode-btn {                                                   
+       88 -  flex: 1;                                                    
+       89 -  min-width: 180px;                                           
+       90 -  display: flex;                                              
+       91 -  flex-direction: column;                                     
+       92 -  align-items: center;                                        
+       93 -  gap: 8px;                                                   
+       94 -  padding: 28px 20px;                                         
+       95 -  border-radius: 12px;                                        
+       96 -  border: 2px solid #2a4d72;                                  
+       97 -  background: #13243d;                                        
+       98 -  color: #c8dff0;                                             
+       99 -  cursor: pointer;                                            
+      100 -  transition: border-color 0.15s, background 0.15s, transform 
+          -0.1s;                                                         
+      101 -}                                                             
+      102 -                                                              
+      103 -.mode-btn:hover {                                             
+      104 -  border-color: #7ec8e3;                                      
+      105 -  background: rgba(126, 200, 227, 0.08);                      
+      106 -  transform: translateY(-2px);                                
+      107 -}                                                             
+      108 -                                                              
+      109 -.mode-icon   { font-size: 2.2rem; }                           
+      110 -.mode-title  { font-size: 1rem; font-weight: 700; color: #7ec8
+          -e3; }                                                         
+      111 -.mode-desc   { font-size: 0.78rem; color: #5a7a9a; text-align:
+          - center; line-height: 1.4; }                                  
+      112 -                                                              
+       96  /* ── Placement screen ────────────────────────────── */
+       97  .layout {
+       98    display: flex;
+     ...
+      111  .placement-banner {
+      112    text-align: center;
+      113    padding: 10px;
+      131 -  background: rgba(74, 144, 196, 0.15);                       
+      114 +  background: rgba(74,144,196,0.15);                          
+      115    border: 1px solid #4a90c4;
+      116    border-radius: 8px;
+      117    color: #7ec8e3;
+     ...
+      122  
+      123  /* ── Ship list ───────────────────────────────────── */
+      124  .ship-list h2 {
+      142 -  font-size: 0.85rem;                                         
+      143 -  letter-spacing: 0.1em;                                      
+      125 +  font-size: 0.8rem;                                          
+      126 +  letter-spacing: 0.12em;                                     
+      127    text-transform: uppercase;
+      128    color: #7ec8e3;
+      129    margin-bottom: 12px;
+     ...
+      136    padding: 8px 10px;
+      137    border-radius: 6px;
+      138    border: 2px solid transparent;
+      156 -  cursor: pointer;                                            
+      139    transition: border-color 0.15s, background 0.15s, opacity 0.
+           15s;
+      140    user-select: none;
+      141  }
+      142  
+      161 -.ship-item:not(.placed):hover { border-color: #4a90c4; backgro
+          -und: rgba(74,144,196,0.1); }                                  
+      162 -.ship-item.selected { border-color: #7ec8e3; background: rgba(
+          -126,200,227,0.12); }                                          
+      163 -.ship-item.placed   { opacity: 0.45; cursor: default; }       
+      143 +.ship-item.draggable {                                        
+      144 +  cursor: grab;                                               
+      145 +  border-color: #2a4a6a;                                      
+      146 +}                                                             
+      147 +.ship-item.draggable:hover {                                  
+      148 +  border-color: #4a90c4;                                      
+      149 +  background: rgba(74,144,196,0.1);                           
+      150 +}                                                             
+      151 +.ship-item.draggable:active { cursor: grabbing; }             
+      152 +.ship-item.placed { opacity: 0.4; cursor: default; }          
+      153  
+      154  .ship-name    { font-size: 0.82rem; font-weight: 600; color: #
+           c8dff0; }
+      155  .ship-blocks  { display: flex; gap: 2px; }
+      156  .ship-block   { width: 14px; height: 14px; border-radius: 2px;
+            background: #4a90c4; border: 1px solid #7ec8e3; }
+      168 -.placed-badge { font-size: 0.7rem; color: #5db87a; font-weight
+          -: 600; }                                                      
+      157 +.placed-badge { font-size: 0.8rem; color: #5db87a; }          
+      158  
+      170 -/* ── Controls ────────────────────────────────────── */      
+      159 +/* ── Buttons ─────────────────────────────────────── */      
+      160  .controls { display: flex; flex-direction: column; gap: 6px; }
+      161  
+      162  .orientation-btn {
+     ...
+      168    font-size: 0.85rem;
+      169    font-weight: 600;
+      170    cursor: pointer;
+      182 -  letter-spacing: 0.05em;                                     
+      171    transition: background 0.15s;
+      172  }
+      173  .orientation-btn:hover, .orientation-btn.active { background: 
+           rgba(74,144,196,0.2); }
+     ...
+      207  }
+      208  
+      209  .grid-col-labels { display: flex; margin-bottom: 2px; }
+      222 -                                                              
+      210  .grid-corner { width: 28px; height: 24px; flex-shrink: 0; }
+      224 -                                                              
+      211  .grid-row { display: flex; align-items: center; }
+      212  
+      213  .grid-label {
+     ...
+      228    background: #0d2040;
+      229    cursor: pointer;
+      230    position: relative;
+      245 -  transition: background 0.1s;                                
+      231    flex-shrink: 0;
+      232 +  overflow: visible;                                          
+      233  }
+      234  .cell:hover:not(.occupied):not(.shot-hit):not(.shot-miss) { ba
+           ckground: #142d52; }
+      235  .cell.occupied  { background: transparent; border-color: #2a4a
+           6a; }
+      250 -.cell.revealed  { background: transparent; border-color: #c44a
+          -4a; }                                                         
+      251 -.cell.hover-valid   { background: rgba(93,184,122,0.25); borde
+          -r-color: #5db87a; }                                           
+      252 -.cell.hover-invalid { background: rgba(196,74,74,0.25); border
+          --color: #c44a4a; }                                            
+      253 -.cell.shot-hit  { background: rgba(196,74,74,0.2); }          
+      254 -.cell.shot-miss { background: rgba(90,130,160,0.15); }        
+      236 +.cell.hover-valid   { background: rgba(93,184,122,0.22); borde
+          +r-color: #5db87a; }                                           
+      237 +.cell.hover-invalid { background: rgba(196,74,74,0.22); border
+          +-color: #c44a4a; }                                            
+      238 +.cell.shot-hit  { background: rgba(220,80,60,0.18); border-col
+          +or: #c04040; }                                                
+      239 +.cell.shot-miss { background: rgba(60,100,150,0.18); border-co
+          +lor: #3a6090; }                                               
+      240  
+      256 -/* Shot markers */                                            
+      241 +/* ── Shot markers ────────────────────────────────── */      
+      242  .shot-marker {
+      243    position: absolute;
+      244    inset: 0;
+     ...
+      247    justify-content: center;
+      248    pointer-events: none;
+      249  }
+      265 -.shot-marker::after {                                         
+      250 +.shot-marker::after { content: ''; display: block; border-radi
+          +us: 50%; }                                                    
+      251 +                                                              
+      252 +.shot-marker.hit::after {                                     
+      253 +  width: 20px; height: 20px;                                  
+      254 +  background: radial-gradient(circle, #ff6040 30%, #c03020 70%
+          +);                                                            
+      255 +  box-shadow: 0 0 6px #ff604080;                              
+      256 +}                                                             
+      257 +.shot-marker.miss::after {                                    
+      258 +  width: 12px; height: 12px;                                  
+      259 +  background: #3a6090;                                        
+      260 +  border: 2px solid #6a90b8;                                  
+      261 +  box-shadow: 0 0 4px #3a609040;                              
+      262 +}                                                             
+      263 +                                                              
+      264 +/* Fresh shot pops in */                                      
+      265 +.cell.shot-fresh .shot-marker { animation: marker-pop 0.25s cu
+          +bic-bezier(0.2,1.4,0.5,1) both; }                             
+      266 +@keyframes marker-pop {                                       
+      267 +  from { transform: scale(0); opacity: 0; }                   
+      268 +  to   { transform: scale(1); opacity: 1; }                   
+      269 +}                                                             
+      270 +                                                              
+      271 +/* ── Ship overlay animations ─────────────────────── */      
+      272 +.ship-overlay-wrap { transition: filter 0.3s; }               
+      273 +                                                              
+      274 +.ship-sinking {                                               
+      275 +  animation: ship-sink 1.4s ease-in forwards;                 
+      276 +  z-index: 3 !important;                                      
+      277 +}                                                             
+      278 +@keyframes ship-sink {                                        
+      279 +  0%   { filter: brightness(1) saturate(1); transform: scale(1
+          +); }                                                          
+      280 +  8%   { filter: brightness(4) saturate(0.5); transform: scale
+          +(1.04); }                                                     
+      281 +  20%  { filter: brightness(2) hue-rotate(20deg) saturate(1.5)
+          +; transform: scale(1.02) rotate(-1deg); }                     
+      282 +  40%  { filter: brightness(1.4) hue-rotate(10deg); transform:
+          + scale(1.01) rotate(1deg); }                                  
+      283 +  70%  { filter: brightness(0.6) saturate(0.4); transform: sca
+          +le(0.98); opacity: 0.9; }                                     
+      284 +  100% { filter: brightness(0.2) saturate(0) sepia(0.8); trans
+          +form: scale(0.95); opacity: 0.45; }                           
+      285 +}                                                             
+      286 +                                                              
+      287 +/* ── Shell animation layer ───────────────────────── */      
+      288 +.shell-layer {                                                
+      289 +  position: fixed;                                            
+      290 +  inset: 0;                                                   
+      291 +  pointer-events: none;                                       
+      292 +  z-index: 9999;                                              
+      293 +  overflow: hidden;                                           
+      294 +}                                                             
+      295 +                                                              
+      296 +/* Projectile */                                              
+      297 +.shell-projectile {                                           
+      298 +  position: absolute;                                         
+      299 +  width: 10px;                                                
+      300 +  height: 10px;                                               
+      301 +  border-radius: 50%;                                         
+      302 +  background: radial-gradient(circle at 35% 35%, #ffe060, #ff8
+          +020);                                                         
+      303 +  box-shadow: 0 0 10px 3px #ff802080, 0 0 20px 6px #ff401040; 
+      304 +  transform: translate(-50%, -50%);                           
+      305 +  animation: shell-fly 0.36s cubic-bezier(0.4, 0, 0.6, 1) forw
+          +ards;                                                         
+      306 +}                                                             
+      307 +@keyframes shell-fly {                                        
+      308 +  0%   {                                                      
+      309 +    left: var(--sx);                                          
+      310 +    top:  var(--sy);                                          
+      311 +    transform: translate(-50%, -50%) scale(1.4);              
+      312 +    opacity: 1;                                               
+      313 +  }                                                           
+      314 +  100% {                                                      
+      315 +    left: calc(var(--sx) + var(--dx));                        
+      316 +    top:  calc(var(--sy) + var(--dy));                        
+      317 +    transform: translate(-50%, -50%) scale(0.6);              
+      318 +    opacity: 0.7;                                             
+      319 +  }                                                           
+      320 +}                                                             
+      321 +                                                              
+      322 +/* Impact: hit */                                             
+      323 +.shell-impact {                                               
+      324 +  position: absolute;                                         
+      325 +  transform: translate(-50%, -50%);                           
+      326 +}                                                             
+      327 +                                                              
+      328 +.shell-impact.impact-hit::before,                             
+      329 +.shell-impact.impact-hit::after {                             
+      330    content: '';
+      267 -  display: block;                                             
+      331 +  position: absolute;                                         
+      332    border-radius: 50%;
+      333 +  transform: translate(-50%, -50%);                           
+      334  }
+      270 -.shot-marker.hit::after {                                     
+      271 -  width: 22px; height: 22px;                                  
+      272 -  background: #e05050;                                        
+      273 -  box-shadow: 0 0 8px #e05050aa;                              
+      335 +.shell-impact.impact-hit::before {                            
+      336 +  width: 60px; height: 60px;                                  
+      337 +  background: radial-gradient(circle, #ff8030cc 0%, #ff401040 
+          +50%, transparent 70%);                                        
+      338 +  animation: hit-bloom 0.55s ease-out forwards;               
+      339  }
+      275 -.shot-marker.miss::after {                                    
+      276 -  width: 14px; height: 14px;                                  
+      277 -  background: #4a7090;                                        
+      278 -  border: 2px solid #6a90b0;                                  
+      340 +.shell-impact.impact-hit::after {                             
+      341 +  width: 80px; height: 80px;                                  
+      342 +  border: 3px solid #ff6030;                                  
+      343 +  animation: hit-ring 0.55s ease-out forwards;                
+      344  }
+      345 +@keyframes hit-bloom {                                        
+      346 +  0%   { transform: translate(-50%,-50%) scale(0.2); opacity: 
+          +1; }                                                          
+      347 +  60%  { opacity: 0.9; }                                      
+      348 +  100% { transform: translate(-50%,-50%) scale(1.4); opacity: 
+          +0; }                                                          
+      349 +}                                                             
+      350 +@keyframes hit-ring {                                         
+      351 +  0%   { transform: translate(-50%,-50%) scale(0.1); opacity: 
+          +1; }                                                          
+      352 +  100% { transform: translate(-50%,-50%) scale(1.6); opacity: 
+          +0; }                                                          
+      353 +}                                                             
+      354  
+      355 +/* Extra sparks for hit */                                    
+      356 +.shell-impact.impact-hit {                                    
+      357 +  --n: 8;                                                     
+      358 +  animation: hit-flash 0.12s ease-out forwards;               
+      359 +}                                                             
+      360 +@keyframes hit-flash {                                        
+      361 +  0%,100% { background: transparent; }                        
+      362 +  30%     { background: radial-gradient(circle at center, #fff
+          +fff88 0%, transparent 50%); }                                 
+      363 +}                                                             
+      364 +                                                              
+      365 +/* Impact: sunk — bigger explosion */                         
+      366 +.shell-impact.impact-sunk::before {                           
+      367 +  width: 120px; height: 120px;                                
+      368 +  background: radial-gradient(circle, #ffcc00cc 0%, #ff4000aa 
+          +40%, transparent 70%);                                        
+      369 +  animation: hit-bloom 0.9s ease-out forwards;                
+      370 +}                                                             
+      371 +.shell-impact.impact-sunk::after {                            
+      372 +  width: 160px; height: 160px;                                
+      373 +  border: 4px solid #ff8000;                                  
+      374 +  box-shadow: 0 0 20px #ff800080;                             
+      375 +  animation: hit-ring 0.9s ease-out forwards;                 
+      376 +}                                                             
+      377 +                                                              
+      378 +/* Impact: miss */                                            
+      379 +.shell-impact.impact-miss::before,                            
+      380 +.shell-impact.impact-miss::after {                            
+      381 +  content: '';                                                
+      382 +  position: absolute;                                         
+      383 +  border-radius: 50%;                                         
+      384 +  transform: translate(-50%, -50%);                           
+      385 +}                                                             
+      386 +.shell-impact.impact-miss::before {                           
+      387 +  width: 40px; height: 40px;                                  
+      388 +  background: radial-gradient(circle, #80c8e880 0%, transparen
+          +t 70%);                                                       
+      389 +  animation: miss-splash 0.5s ease-out forwards;              
+      390 +}                                                             
+      391 +.shell-impact.impact-miss::after {                            
+      392 +  width: 60px; height: 60px;                                  
+      393 +  border: 2px solid #4a90c4;                                  
+      394 +  animation: miss-ring 0.5s ease-out forwards;                
+      395 +}                                                             
+      396 +@keyframes miss-splash {                                      
+      397 +  0%   { transform: translate(-50%,-50%) scale(0.1); opacity: 
+          +0.9; }                                                        
+      398 +  100% { transform: translate(-50%,-50%) scale(1.2); opacity: 
+          +0; }                                                          
+      399 +}                                                             
+      400 +@keyframes miss-ring {                                        
+      401 +  0%   { transform: translate(-50%,-50%) scale(0.1); opacity: 
+          +0.7; }                                                        
+      402 +  100% { transform: translate(-50%,-50%) scale(1.8); opacity: 
+          +0; }                                                          
+      403 +}                                                             
+      404 +                                                              
+      405  /* ── Battle screen ───────────────────────────────── */
+      406  .battle-screen {
+      283 -  max-width: 1050px;                                          
+      407 +  max-width: 1080px;                                          
+      408    margin: 0 auto;
+      409    padding: 16px 16px 32px;
+      410  }
+     ...
+      417    font-weight: 700;
+      418    margin-bottom: 24px;
+      419    letter-spacing: 0.04em;
+      296 -  transition: background 0.3s;                                
+      420 +  transition: background 0.3s, border-color 0.3s;             
+      421  }
+      422  .turn-banner.my-turn {
+      299 -  background: rgba(93,184,122,0.15);                          
+      423 +  background: rgba(93,184,122,0.14);                          
+      424    border: 1px solid #5db87a;
+      425    color: #5db87a;
+      426  }
+     ...
+      429    border: 1px solid #4a90c4;
+      430    color: #7ec8e3;
+      431  }
+      308 -.last-result { margin-left: 12px; font-weight: 400; }         
+      432  
+      433  .battle-layout {
+      434    display: flex;
+     ...
+      449  }
+      450  .grid-title.active-grid { color: #5db87a; }
+      451  
+      452 +.fire-hint {                                                  
+      453 +  font-size: 0.75rem;                                         
+      454 +  color: #5db87a;                                             
+      455 +  opacity: 0.8;                                               
+      456 +  animation: blink 1.2s step-end infinite;                    
+      457 +}                                                             
+      458 +@keyframes blink { 50% { opacity: 0; } }                      
+      459 +                                                              
+      460  .battle-divider {
+      461    width: 1px;
+      462 +  min-height: 440px;                                          
+      463    background: #1e3a5f;
+      332 -  align-self: stretch;                                        
+      464 +  align-self: center;                                         
+      465    margin: 0 4px;
+      466  }
+      467  
+     ...
+      473    border-radius: 16px;
+      474    border: 1px solid #1e3a5f;
+      475  }
+      344 -.gameover-card.won  { border-color: #5db87a; }                
+      345 -.gameover-card.lost { border-color: #c44a4a; }                
+      476 +.gameover-card.won  { border-color: #5db87a; box-shadow: 0 0 4
+          +0px rgba(93,184,122,0.15); }                                  
+      477 +.gameover-card.lost { border-color: #c44a4a; box-shadow: 0 0 4
+          +0px rgba(196,74,74,0.15); }                                   
+      478  
+      479  .gameover-icon { font-size: 4rem; margin-bottom: 16px; }
+      480  .gameover-card h1 { font-size: 2rem; margin-bottom: 12px; }
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && npx vite build 2>&1 | tail
+      -20)
+  ⎿  vite v5.4.21 building for production...
+     transforming...
+     ✓ 44 modules transformed.
+     … +6 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+● Clean build. Commit and we're done:
+
+● Bash(cd C:/Users/JacobB/Documents/battleship && git add -A && git commit -m
+      "$(cat <<'EOF'
+      Multiple rooms, drag-only placement, shell and sinking animations…)  ⎿  warning: in the working copy of 'server.js', LF will be replaced by CR
+     LF the next time Git touches it
+     warning: in the working copy of 'src/App.css', LF will be replaced by
+     … +17 lines (ctrl+o to expand)
+
+● Done. Run with npm run dev. Here's what changed:
+
+  Multiple rooms — the first player to open http://localhost:5173 gets a URL
+  like ?room=K7MN. They share it; the second player opens the same URL and
+  joins. Rooms are independent.
+
+  Drag-only — the mode selection screen is gone. Ships are always placed by
+  dragging from the sidebar.
+
+  Animations:
+  - Shell — a glowing orange/yellow projectile flies across the viewport to the
+  target cell using CSS @keyframes with left/top transitions on a fixed overlay
+  - Hit — orange bloom flash + expanding ring at impact point; bigger version
+  when a ship sinks
+  - Miss — blue ripple rings
+  - Sunk ship — the ship overlay flashes white, then darkens and fades to a
+  wreck silhouette
+
+✻ Churned for 6m 5s

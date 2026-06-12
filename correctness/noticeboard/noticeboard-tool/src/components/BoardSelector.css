@@ -1,0 +1,179 @@
+.board-selector {
+  position: relative;
+}
+
+.board-selector-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--btn-border, rgba(255,255,255,0.22));
+  background: var(--btn-bg, rgba(255,255,255,0.1));
+  color: var(--toolbar-text, #f0dfc0);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 150px;
+  justify-content: space-between;
+  transition: background 0.15s;
+}
+
+.board-selector-btn:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+.board-selector-arrow {
+  font-size: 9px;
+  opacity: 0.6;
+}
+
+.board-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 230px;
+  background: rgba(18, 10, 3, 0.97);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+  z-index: 500;
+  padding: 4px 0;
+}
+
+.board-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  transition: background 0.1s;
+}
+
+.board-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.board-item.active {
+  background: rgba(255,255,255,0.08);
+}
+
+.board-name-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.82);
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+}
+
+.board-check {
+  color: #86efac;
+  font-size: 11px;
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.board-item-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.board-item-actions button {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.35);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s;
+}
+
+.board-item-actions button:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85);
+}
+
+.board-rename-input {
+  flex: 1;
+  padding: 6px 8px;
+  margin: 4px 0;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 5px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+}
+
+.board-create-section {
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding: 5px 6px;
+}
+
+.board-create-btn {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  border-radius: 5px;
+  transition: background 0.1s, color 0.1s;
+}
+
+.board-create-btn:hover {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.85);
+}
+
+.board-create-form {
+  display: flex;
+  gap: 6px;
+}
+
+.board-create-form input {
+  flex: 1;
+  padding: 7px 8px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 5px;
+  color: white;
+  font-size: 13px;
+  outline: none;
+}
+
+.board-create-form input::placeholder {
+  color: rgba(255,255,255,0.28);
+}
+
+.board-create-form button {
+  padding: 7px 13px;
+  border: none;
+  background: #b8874a;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.12s;
+}
+
+.board-create-form button:hover {
+  background: #d4a060;
+}

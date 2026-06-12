@@ -1,0 +1,10 @@
+GraphingCalculator
+    FunctionInput
+    GraphCanvas
+        CoordinateGrid
+        FunctionPlot
+        DataPoints
+    ViewportControl
+    DataTable
+    Regression
+    Variables

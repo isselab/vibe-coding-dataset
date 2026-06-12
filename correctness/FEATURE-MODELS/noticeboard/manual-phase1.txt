@@ -1,0 +1,5 @@
+Noticeboard
+	Board
+	Notes
+		Textnote
+		Imagenote

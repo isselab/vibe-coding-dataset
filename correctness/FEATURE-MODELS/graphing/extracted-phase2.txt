@@ -1,0 +1,61 @@
+Graphing Calculator
+	Graph Rendering                          [Stage 1]
+		Canvas-based 2D renderer
+		Grid with intelligent step sizing
+		X and Y axis rendering with labels
+		High-DPI rendering support
+		Discontinuity handling
+		● Point rendering (colored circles, black stroke)   [NEW]
+	Math Engine                              [Stage 1]
+		mathjs expression evaluation
+		Operators: +, -, *, /, ^
+		Functions: sin, cos, tan, sqrt, log, abs
+		Constants: pi, e
+	Function Management                      [Stage 1]
+		Up to 6 functions (expandable)
+		Color-coded function slots
+		Visibility toggle per function
+		Add / remove function
+		Real-time expression validation
+		Error display for invalid expressions
+		● Receive regression result ("→ Add to functions")  [NEW]
+	View Range                               [Stage 1]
+		X min / X max inputs
+		Y min / Y max inputs
+		Reset view button
+	Syntax Reference                         [Stage 1]
+		Help section
+	● Dataset Management                                     [NEW]
+		Multiple named datasets
+		Color assignment per dataset
+		Visibility toggle per dataset
+		Remove dataset
+	● Point Tables                                           [NEW]
+		Editable x/y input table per dataset
+		Add / remove rows
+		Real-time validation with error highlighting
+		Points rendered on canvas per dataset color
+	● Regression Engine                                      [NEW]
+		Model selection (per dataset)
+			Linear        (min 2 points)
+			Quadratic     (min 3 points)
+			Cubic         (min 4 points)
+			Exponential   (min 2 points)
+			Logarithmic   (min 2 points)
+			Power         (min 2 points)
+		Fit button (disabled when insufficient points)
+		R² goodness-of-fit display
+		Fitted equation display
+		Minimum-point validation message
+		Dashed regression curve on canvas
+		"→ Add to functions" transfer
+	● Tab System                                             [NEW]
+		Functions tab
+		Data tab
+	UI / Styling                             [Stage 1 +]
+		Sidebar + canvas layout
+		Dark theme
+		Monospace font
+		Dataset card components               [NEW]
+		Table cell and border styling         [NEW]
+		Regression result display box         [NEW]

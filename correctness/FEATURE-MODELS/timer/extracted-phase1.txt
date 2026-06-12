@@ -1,0 +1,21 @@
+Timer App
+	Time Input
+		Hours field (number, 0–23)
+		Minutes field (number, 0–59)
+		Seconds field (number, 0–59)
+	Countdown Display
+		SVG circular progress ring
+			Track ring (static)
+			Progress arc (shrinks with time)
+		Digital time readout (HH:MM:SS)
+		"Time's up!" label (alarm state only)
+	Timer Controls
+		Start button
+		Pause button
+		Resume button (paused state)
+		Reset button
+		Stop Alarm button (alarm state, replaces Start)
+	Alarm System
+		Web Audio API synthesized beeps (sine oscillators)
+		Repeating alarm loop (every 1.8 s)
+		Visual flash animation (background pulses dark red)

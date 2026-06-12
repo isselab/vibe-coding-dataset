@@ -1,0 +1,18 @@
+KanbanBoard
+    Persistence
+    Tasks
+        TaskCard
+        CreateTask
+        EditTask
+        DragDrop
+        TaskPriority
+        TaskDeadline
+        UrgencyIndicator
+        TaskModal
+    Columns
+    Boards
+        BoardSidebar
+        CreateBoard
+        DeleteBoard
+        SelectBoard
+        RenameBoard

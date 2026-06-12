@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__fm-gui__get-feature-model",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "mcp__fm-gui__summary-gui",
+      "Bash(git init *)",
+      "Bash(npm create *)",
+      "Bash(npx create-vite@latest . --template react --force)",
+      "Bash(npx vite *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npx kill-port *)",
+      "Skill(feature-model)",
+      "Skill(embedded-feature-annotation)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\JacobB\\\\Documents\\\\budget2\\\\src\\\\components\\\\RecurringManager.jsx\")",
+      "Bash(Remove-Item \"C:\\\\Users\\\\JacobB\\\\Documents\\\\budget2\\\\src\\\\components\\\\BankImport.jsx\")"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "fm-gui"
+  ]
+}

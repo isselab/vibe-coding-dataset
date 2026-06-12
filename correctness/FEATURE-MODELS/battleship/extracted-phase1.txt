@@ -1,0 +1,22 @@
+Battleship (Stage 1)
+	Grid
+		10×10 cells
+		Row labels (A–J)
+		Column labels (1–10)
+		Hover preview
+			Valid placement highlight (green)
+			Invalid placement highlight (red)
+	Ship Placement
+		Fleet panel
+			5 ships (Carrier, Battleship, Cruiser, Submarine, Destroyer)
+			Selection indicator
+			Placed indicator
+		Placement methods
+			Click to place
+			Drag and drop
+		Orientation
+			Toggle button (Horizontal / Vertical)
+			Keyboard shortcut (R)
+		Remove placed ship (× on hover)
+		Reset all ships
+		"All ships placed" confirmation message

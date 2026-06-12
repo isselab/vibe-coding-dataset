@@ -1,0 +1,27 @@
+Workout Log
+	Session Form
+		Date picker (defaults to today)
+		Title (optional free text)
+		Exercise list
+			Exercise row
+				Name (text input)
+				Sets (number)
+				Reps (number)
+				Weight (kg)
+			Add exercise button
+			Remove exercise button (disabled when only 1 row)
+		Save button (disabled if no exercise has a name)
+	Session History
+		Scrollable session list (sorted newest-first by date)
+		Session card
+			Collapsed state
+				Date
+				Title (if set)
+				Exercise count summary
+				Expand / collapse chevron
+			Expanded state
+				Exercise table
+					Name
+					Sets
+					Reps
+					Weight (kg)

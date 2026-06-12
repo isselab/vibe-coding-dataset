@@ -1,0 +1,8 @@
+NoticeBoard
+	Card
+	DragAndDrop
+	CardManagement
+	Persistence
+	Realtime
+	AdminAuth
+	Reactions

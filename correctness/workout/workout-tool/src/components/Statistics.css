@@ -1,0 +1,31 @@
+.statistics {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.chart-container {
+  background: #1e1e2a;
+  border: 1px solid #2e2e3e;
+  border-radius: 12px;
+  padding: 20px 16px 12px;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8e8f0;
+  margin-bottom: 16px;
+}
+
+.chart-empty {
+  text-align: center;
+  color: #666;
+  padding: 48px 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.chart-empty strong {
+  color: #aaa;
+}

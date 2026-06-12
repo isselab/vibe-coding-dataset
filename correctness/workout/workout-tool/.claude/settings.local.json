@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet *)",
+      "mcp__fm-gui__summary-gui",
+      "mcp__fm-gui__get-feature-model",
+      "Skill(feature-model)",
+      "Skill(embedded-feature-annotation)",
+      "Bash(npm create *)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "fm-gui"
+  ]
+}

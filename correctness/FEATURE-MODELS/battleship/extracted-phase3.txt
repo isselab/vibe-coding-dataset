@@ -1,0 +1,63 @@
+Battleship (Stage 3)
+	Game Phases
+		Connecting screen
+		Waiting screen
+			Room code display
+			Shareable link
+			Copy to clipboard button
+		Placement phase
+		Battle phase
+		Game over screen
+			Win / lose result
+			Play again (page reload)
+	Room System
+		Room creation on first connect (auto-generated 4-char ID)
+		Room joining via URL parameter (?room=XXXX)
+		URL updated with room ID for sharing
+		Room full error
+		Room not found error
+		Room auto-cleanup (deleted 30s after last player leaves)
+	Multiplayer
+		WebSocket connection (multi-room)
+		Opponent disconnect handling
+	Ship Placement
+		Fleet panel
+			5 ships (Carrier, Battleship, Cruiser, Submarine, Destroyer)
+			Selection indicator
+			Placed indicator
+		Placement method
+			Drag and drop only
+		Orientation
+			Toggle button (Horizontal / Vertical)
+			Keyboard shortcut (R)
+		Remove placed ship
+		Reset all ships
+		"All ships placed" confirmation message
+		"Waiting for opponent" banner
+	Grid
+		10×10 cells
+		Row labels (A–J)
+		Column labels (1–10)
+		Hover preview (placement phase)
+			Valid placement highlight
+			Invalid placement highlight
+		Hit / miss markers (battle phase)
+		Sunk enemy ship reveal (battle phase)
+	Ship Visuals
+		SVG naval silhouettes (unique per ship type)
+		Absolute-positioned overlays on grid
+		Horizontal / vertical orientation rendering
+		Sinking animation state
+	Battle
+		Turn-based attacks (click enemy grid)
+		Hit / miss markers
+		Sunk ship reveal
+		Turn indicator
+		Turn locked during active animation
+	Animations
+		Shell animation
+			Projectile arc to target cell
+			Hit impact effect
+			Miss effect
+		Ship sinking animation
+		Pending shot system (shot committed to grid after animation)

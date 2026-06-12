@@ -1,0 +1,32 @@
+Budget Tracker
+	Navigation
+		Dashboard tab
+		Transactions tab
+		Categories tab
+	Dashboard
+		Monthly Summary Cards
+			Spent This Month
+			Total Budget (shown when limits are set)
+			Transaction Count
+		Budget Warnings Panel
+			Per-category warning (category name, amount spent, limit)
+		Category Breakdown
+			Progress Bar per category (green → amber at 80% → red when over)
+	Transactions
+		Add Transaction Form
+			Description field
+			Amount field
+			Category selector
+			Date picker
+		Transaction List
+			Filter by category
+			Sort by date (asc / desc)
+			Delete transaction
+	Categories
+		Predefined categories (Housing, Food, Transport, Entertainment,
+│   │   Health, Shopping, Utilities, Other)
+		Add custom category
+		Set monthly spend limit per category
+		Remove monthly spend limit
+	Data Persistence
+		localStorage (transactions, categories, limits)

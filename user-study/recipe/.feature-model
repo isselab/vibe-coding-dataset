@@ -1,0 +1,10 @@
+RecipeBook
+    RecipeList
+        RecipeCard
+        RecipeDetail
+    RecipeManagement
+        AddRecipe
+        DeleteRecipe
+    ShoppingList
+        AddShoppingItem
+        CompleteShoppingItem

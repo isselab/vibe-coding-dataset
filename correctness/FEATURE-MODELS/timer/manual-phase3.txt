@@ -1,0 +1,10 @@
+TimerApp
+List
+Timer
+	Start/Stop
+	Reset
+StopWatch
+	Start/Stop
+	Reset
+	Lap
+Keybinds

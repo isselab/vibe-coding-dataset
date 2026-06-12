@@ -1,0 +1,21 @@
+Noticeboard
+	Board
+		Cork board background (CSS texture)
+		Persistence (localStorage)
+	Text cards
+		Add card
+		Inline text editing
+		Color options
+		Random initial rotation
+	Image / Polaroid cards
+		Add card
+		Image upload
+		Caption text
+		Random initial rotation
+	Card interactions
+		Free-position drag
+		Bring to front (z-index on focus)
+		Delete card
+	Toolbar
+		Add text card button
+		Add image card button

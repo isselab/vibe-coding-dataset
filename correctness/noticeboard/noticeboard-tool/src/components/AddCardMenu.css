@@ -1,0 +1,140 @@
+.toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--toolbar-bg, rgba(52, 30, 8, 0.9));
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.toolbar-brand {
+  color: var(--toolbar-text, #f0dfc0);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  min-width: 110px;
+}
+
+.toolbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-btn-wrapper,
+.theme-btn-wrapper {
+  position: relative;
+}
+
+.toolbar-btn {
+  padding: 7px 14px;
+  border: 1px solid var(--btn-border, rgba(255,255,255,0.22));
+  background: var(--btn-bg, rgba(255,255,255,0.1));
+  color: var(--toolbar-text, #f0dfc0);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.toolbar-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.toolbar-btn-secondary {
+  opacity: 0.6;
+}
+
+/* Card color picker */
+.color-picker {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: rgba(18, 10, 3, 0.97);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  z-index: 500;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.color-swatch:hover {
+  transform: scale(1.18);
+  border-color: rgba(255,255,255,0.8);
+}
+
+/* Theme picker */
+.theme-picker {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: rgba(18, 10, 3, 0.97);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 140px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  z-index: 500;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  transition: background 0.1s, color 0.1s;
+}
+
+.theme-option:hover {
+  background: rgba(255,255,255,0.08);
+  color: white;
+}
+
+.theme-option.active {
+  background: rgba(255,255,255,0.12);
+  color: white;
+}
+
+.theme-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  flex-shrink: 0;
+}

@@ -1,0 +1,80 @@
+Budget Tracker
+	Navigation
+		Dashboard tab
+		Transactions tab
+		Recurring tab          (now hosts Salary + Subscriptions panels)
+		Goals tab
+		Categories tab
+│   (Tools tab removed)
+	Dashboard
+		Monthly Summary Cards
+			Income             (shown when income exists)
+			Expenses
+			Net (Income − Expenses)
+			Total Budget       (shown when limits are set)
+			Transaction Count
+		Budget Warnings Panel
+			Per-category warning
+		Category Breakdown
+			Progress Bar per category
+		Saving Goals Summary
+			Progress bar per active goal
+	Transactions
+		Add Transaction Form
+			Transaction type toggle (Expense / Income)
+			Description field
+			Amount field
+				Inline Currency Converter  [new — moved from Tools tab]
+					FX toggle button (show/hide)
+					Foreign amount input
+					From currency selector (22 currencies)
+					To currency selector (22 currencies)
+					Live rate fetch (on open / on currency change)
+					"Use" button (writes converted value into Amount field)
+			Category selector
+			Date picker
+		Transaction List
+			Type filter
+			Filter by category
+			Sort by date
+			Type badge per row
+			Income amount in green
+			Delete transaction
+	Recurring                  [restructured]
+		Salary Manager         [new — income side of former RecurringManager]
+			Add Income Entry
+				Description
+				Amount
+				Category
+				Frequency (weekly, biweekly, monthly, quarterly, yearly)
+				Start date
+				Optional end date
+			Income recurring list
+			Auto-materialization on app load
+			Delete entry
+		Subscription Manager   [new — expense side of former
+RecurringManager]
+			Add Expense Entry
+				Description
+				Amount
+				Category
+				Frequency (daily, weekly, biweekly, monthly, quarterly,
+yearly)
+				Start date
+				Optional end date
+			Expense recurring list
+			Auto-materialization on app load
+			Delete entry
+	Saving Goals
+		Add Goal (name, target, deadline, notes)
+		Goal card (amounts, progress bar, deadline, completion badge)
+		Contribute to goal
+		Delete goal
+	Categories
+		Predefined categories
+		Add custom category
+		Set monthly spend limit
+		Remove monthly spend limit
+	Data Persistence
+		localStorage (transactions, categories, limits, goals,
+recurringItems)

@@ -1,0 +1,11 @@
+TimerApp
+    TimerList
+    Timer
+        SetDuration
+        Countdown
+        Alarm
+    StopwatchList
+    Stopwatch
+        CountUp
+        Laps
+    KeyBinding

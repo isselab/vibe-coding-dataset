@@ -1,0 +1,9 @@
+BudgetTracker
+	Transactions
+		BankImport
+		Category
+		Recurring
+	SpendLimit
+	SavingsGoal
+	Persistence
+	CurrencyConverter
