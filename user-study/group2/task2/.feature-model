@@ -1,0 +1,15 @@
+KanbanBoard
+    Persistence
+    Tasks
+        TaskCard
+        CreateTask
+        DeleteTask
+        EditTask
+        DragDrop
+    Columns
+    Boards
+        BoardSidebar
+        CreateBoard
+        DeleteBoard
+        SelectBoard
+        RenameBoard

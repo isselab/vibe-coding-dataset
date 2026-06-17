@@ -1,0 +1,430 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.app > h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
+}
+
+.create-task-form {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.create-task-form input {
+  flex: 1;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.create-task-form input:focus {
+  border-color: #4c6ef5;
+}
+
+.create-task-form button {
+  padding: 0.6rem 1.4rem;
+  background: #4c6ef5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.create-task-form button:hover {
+  background: #3b5de8;
+}
+
+.board {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.column {
+  flex: 1;
+  background: #e8eaed;
+  border-radius: 10px;
+  padding: 1rem;
+  min-height: 480px;
+  transition: background 0.15s;
+}
+
+.column.drag-over {
+  background: #d2d8f0;
+  outline: 2px dashed #4c6ef5;
+}
+
+.column-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.9rem;
+  color: #555;
+  padding: 0.4rem 0.5rem;
+}
+
+.column-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.task-card {
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: grab;
+  user-select: none;
+  transition: box-shadow 0.15s, opacity 0.15s;
+}
+
+.task-card--drop-target::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #4c6ef5;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.task-card:hover {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.task-card:active {
+  cursor: grabbing;
+  opacity: 0.8;
+}
+
+.task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.45rem;
+}
+
+.task-id {
+  font-size: 0.68rem;
+  color: #bbb;
+  font-family: monospace;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #ccc;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.delete-btn:hover {
+  color: #e53935;
+}
+
+.task-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: #222;
+}
+
+.task-description {
+  font-size: 0.82rem;
+  color: #777;
+  line-height: 1.45;
+}
+
+.app-body {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+}
+
+.sidebar-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #555;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-board-list {
+  list-style: none;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sidebar-board {
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sidebar-board--active {
+  background: #eef0fd;
+}
+
+.sidebar-board-name {
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-board--active .sidebar-board-name {
+  color: #4c6ef5;
+  font-weight: 600;
+}
+
+.sidebar-board-name:hover {
+  background: #f0f2f5;
+}
+
+.sidebar-board--active .sidebar-board-name:hover {
+  background: #e0e5ff;
+}
+
+.sidebar-board-delete {
+  flex-shrink: 0;
+  padding: 0.3rem 0.5rem;
+  font-size: 1.1rem;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.sidebar-board:hover .sidebar-board-delete {
+  opacity: 1;
+}
+
+.sidebar-board-delete:disabled {
+  opacity: 0 !important;
+  cursor: not-allowed;
+}
+
+.create-board-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eee;
+}
+
+.create-board-form input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.create-board-form input:focus {
+  border-color: #4c6ef5;
+}
+
+.create-board-form button {
+  padding: 0.45rem;
+  background: #4c6ef5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.create-board-form button:hover {
+  background: #3b5de8;
+}
+
+.task-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.task-card__edit-btn--icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #ccc;
+  line-height: 1;
+  padding: 0;
+  opacity: 0;
+  transition: color 0.15s, opacity 0.15s;
+}
+
+.task-card:hover .task-card__edit-btn--icon {
+  opacity: 1;
+}
+
+.task-card__edit-btn--icon:hover {
+  color: #4c6ef5;
+}
+
+.task-card--editing {
+  cursor: default;
+}
+
+.task-card--editing:active {
+  cursor: default;
+  opacity: 1;
+}
+
+.task-card__edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.task-card__edit-input,
+.task-card__edit-textarea {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+
+.task-card__edit-input:focus,
+.task-card__edit-textarea:focus {
+  border-color: #4c6ef5;
+}
+
+.task-card__edit-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.task-card__edit-btn {
+  padding: 0.35rem 0.85rem;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.task-card__edit-btn--save {
+  background: #4c6ef5;
+  color: white;
+  border: none;
+}
+
+.task-card__edit-btn--save:hover {
+  background: #3b5de8;
+}
+
+.task-card__edit-btn--cancel {
+  background: none;
+  border: 1px solid #ddd;
+  color: #666;
+}
+
+.task-card__edit-btn--cancel:hover {
+  border-color: #bbb;
+  color: #333;
+}
+.sidebar-board__rename-input {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #4c6ef5;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  min-width: 0;
+}
+
+.sidebar-board__rename-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #ccc;
+  line-height: 1;
+  padding: 0.3rem 0.4rem;
+  opacity: 0;
+  transition: color 0.15s, opacity 0.15s;
+}
+
+.sidebar-board:hover .sidebar-board__rename-btn {
+  opacity: 1;
+}
+
+.sidebar-board__rename-btn:hover {
+  color: #4c6ef5;
+}
