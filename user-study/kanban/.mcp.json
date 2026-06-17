@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "fm-gui": {
-      "command": "node",
-      "args": [".claude/mcp/index.js"]
-    }
-  }
-}

@@ -6,14 +6,14 @@
 │                   ▝▜█████▛▘                  │ Added plugin dependency enfo… │
 │                     ▘▘ ▝▝                    │ Added projected context cost… │
 │                                              │ Added `worktree.bgIsolation:… │
-│   Sonnet 4.6 · Claude Enterprise · Centiro   │ /release-notes for more       │
+│   Sonnet 4.6 · Claude Enterprise · CompanyC   │ /release-notes for more       │
 │              ~\Documents\budget              │                               │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
   Using Sonnet 4.6 (from managed settings) · /model to change
 
-  Message from Centiro:
-  New to Claude Code? Start with /help, review the CLAUDE.md in your repository, and install relevant plugins for your role from the Centiro marketplace via /plugin.
+  Message from CompanyC:
+  New to Claude Code? Start with /help, review the CLAUDE.md in your repository, and install relevant plugins for your role from the CompanyC marketplace via /plugin.
 
 ❯ Let’s make a budget tracker in React. It should support adding transactions   
   with categories. You should be able to set a monthly spend limit per category 

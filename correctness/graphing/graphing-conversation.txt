@@ -6,7 +6,7 @@
 │                   ▝▜█████▛▘                  │ No recent activity            │
 │                     ▘▘ ▝▝                    │                               │
 │                                              │                               │
-│   Sonnet 4.6 · Claude Enterprise · Centiro   │                               │
+│   Sonnet 4.6 · Claude Enterprise · CompanyC   │                               │
 │             ~\Documents\graphing             │                               │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 

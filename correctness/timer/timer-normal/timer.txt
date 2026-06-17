@@ -6,7 +6,7 @@
 │                   ▝▜█████▛▘                  │ Fixed OAuth authentication f… │
 │                     ▘▘ ▝▝                    │ Added `ANTHROPIC_BEDROCK_SER… │
 │                                              │ Pasting a PR URL into the `/… │
-│   Sonnet 4.6 · Claude Enterprise · Centiro   │ /release-notes for more       │
+│   Sonnet 4.6 · Claude Enterprise · CompanyC   │ /release-notes for more       │
 │          C:\code\DialogRepos\timer           │                               │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 

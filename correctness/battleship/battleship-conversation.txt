@@ -6,7 +6,7 @@
 │                   ▝▜█████▛▘                  │ No recent activity            │
 │                     ▘▘ ▝▝                    │                               │
 │                                              │                               │
-│   Sonnet 4.6 · Claude Enterprise · Centiro   │                               │
+│   Sonnet 4.6 · Claude Enterprise · CompanyC   │                               │
 │            ~\Documents\battleship            │                               │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
@@ -344,7 +344,7 @@
 
 ● Bash(cd C:/Users/JacobB/Documents/battleship && git show --stat HEAD)
   ⎿  commit 3503c96f23c1caf50cb9026a5e1fa60651a74667
-     Author: Jacob Bengtsson <jacob.bengtsson@centiro.com>
+     Author: Jacob Bengtsson <jacob.bengtsson@CompanyC.com>
      Date:   Fri Apr 24 10:12:43 2026 +0200
      … +19 lines (ctrl+o to expand)
 
